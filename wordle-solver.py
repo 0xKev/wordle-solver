@@ -1,0 +1,215 @@
+import requests
+from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.chrome.options import Options
+import ast # To eval python literals, does not execute code
+import logging
+
+
+# Actions for letter status [incorrect, correct, present]
+def action_correct(letter: str, position: int):
+    if letter not in correct_letters.get(position, []):
+        correct_letters.setdefault(position, []).append(letter)
+
+def action_absent(letter: str, position: int):
+    if letter not in incorrect_letters.get(position, []):
+        incorrect_letters.setdefault(position, []).append(letter)
+
+def action_present(letter: str, position: int):
+    if letter not in wrong_position_letters.get(position, []):
+        wrong_position_letters.setdefault(position, []).append(letter)
+
+
+incorrect_letters = {0: [],1: [],2: [],3: [],4: []}# format as {position: letter}
+correct_letters = {0: [],1: [],2: [],3: [],4: []}# format as {position: letter}
+wrong_position_letters = {0: [],1: [],2: [],3: [],4: []}# format as {position: letter}
+letter_state_action = {
+    'correct': action_correct,
+    'absent': action_absent,
+    'present': action_present
+}
+
+def solve_next_word(incorrect_letters: dict, correct_letters: dict, wrong_position_letters: dict, word_list):
+    possible_words = []
+
+    for word in word_list:
+        for letter, position in enumerate(word):
+            pass
+
+
+def get_letter_status(wordle: webdriver, row: int):
+    WebDriverWait(wordle, 3)   
+    row = wordle.find_element(By.XPATH, f'//div[@aria-label="Row {row}"]')
+
+    # Finds the updated data-state (when it changes from tbd)
+    while True:
+        letter_status = row.find_elements(By.XPATH, './/div[@data-state]')
+
+        if letter_status[4].get_attribute('data-state') != 'tbd':
+            break
+    
+    for position, tile in enumerate(letter_status): # Removed start = 1 so it's easier to work with solve_next_word
+        letter_data_state = tile.get_attribute('data-state')
+        letter = tile.text
+        #letters_in_incorrect_set = {letter[0] for letter in incorrect_letters}
+        #letters_in_correct_set = {letter[0] for letter in correct_letters}
+        #print(letter) # debug
+        print(f'get letter status: {letter}, {letter_data_state}') # debug
+        if letter_data_state in letter_state_action:
+            if letter in correct_letters[position]:
+                print('Duplicate correct: ', letter) # debug
+                #correct_letters[position].append(letter)
+            
+            elif letter in incorrect_letters[position]:
+                print('Duplicate incorrect: ', letter)
+                #incorrect_letters[position].append(letter)
+
+            else:
+                letter_state_action[letter_data_state](letter, position)
+                #letter_state_action[letter_data_state](letter, position) # only used for new letters!!! this is rewriting the results before causing issues
+            #print('condition activates') # debug
+    
+    print('correct letters: ', correct_letters)
+    print('wrong position letters:', wrong_position_letters)
+    print('incorrect_letters:', incorrect_letters)
+
+def get_words_list():
+    try:
+        with open('words.txt', 'r') as word_txt:
+
+            word_txt = word_txt.read()
+            word_list = ast.literal_eval(word_txt)
+            
+    except:
+        print('File not found!')
+
+    return word_list
+
+def submit_guess(wordle: webdriver, letters: str):       
+    wait = WebDriverWait(wordle, 10)
+    letter_button = wait.until(EC.presence_of_element_located((By.XPATH, f'//button[@data-key="z"]')))
+
+    for letter in list(letters): #To iterate over the letters 
+        print(f'submit_guess function debug: {letter}')
+        #letter_button = wait.until(EC.presence_of_element_located((By.XPATH, f'//button[@data-key="{letter}"]')))
+        wordle.find_element(By.XPATH, f'//button[@data-key="{letter}"]').click()
+        #letter_button.click()
+    
+    wordle.find_element(By.XPATH, f'//button[@data-key="↵"]').click()
+        
+def user_guess():
+    guess = ''
+    while not valid_word(guess):
+
+        guess = input('Enter your word: ')
+    
+    return guess if valid_word(guess) else False
+
+def valid_word(guess: str):
+    word_list = get_words_list()
+    
+    print('Word valid!') if guess in word_list else print('Invalid!')
+    
+    return guess in word_list
+
+def startGame():
+    attempts = 0
+    #guess = user_guess()
+
+    # Set the logging level to supress error messages
+    logging.getLogger('selenium').setLevel(logging.CRITICAL)
+
+    # Set the logging level to only show fatal messages
+    chrome_options = Options()
+    chrome_options.add_argument('--log-level=3')
+
+    wordle = webdriver.Chrome(options=chrome_options)
+    wordle.get('https://www.nytimes.com/games/wordle/index.html')
+
+    play_button = wordle.find_element(By.XPATH, "//button[@type='button']")
+    play_button.click()
+
+    x_button = wordle.find_element(By.XPATH, "//button[@type='button']")
+    x_button.click()
+
+    
+    '''submit_guess(wordle, guess, attempts)
+
+    wordle.implicitly_wait(10)
+    get_letter_status(wordle, guess)'''
+    manual_play(wordle)
+    
+    keep_alive = input('Submit any key to quit.')
+
+def manual_play(wordle: webdriver):
+    attempts = 1
+
+    while attempts <= 6:
+        guess = user_guess()
+        submit_guess(wordle, guess)
+        get_letter_status(wordle, attempts)
+        print()
+        attempts += 1
+
+    print('Max tries reached (6)')
+    
+def get_source_code():
+
+    url = 'https://www.nytimes.com/games/wordle/index.html'
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        wordle = webdriver.Chrome()
+        wordle.get('https://www.nytimes.com/games/wordle/index.html')
+
+        play_button = wordle.find_element(By.XPATH, "//button[@type='button']")
+        play_button.click()
+
+        x_button = wordle.find_element(By.XPATH, "//button[@type='button']")
+        x_button.click()
+        wordle.implicitly_wait(5)
+
+
+        pageSource = wordle.page_source
+        #wordle.quit()
+        input()
+        soup = BeautifulSoup(pageSource, 'html.parser')
+        print(soup.prettify())
+
+def testing():
+    wordle = webdriver.Chrome()
+    wordle.get('https://www.nytimes.com/games/wordle/index.html')
+
+    play_button = wordle.find_element(By.XPATH, "//button[@type='button']")
+    play_button.click()
+
+    x_button = wordle.find_element(By.XPATH, "//button[@type='button']")
+    x_button.click()
+
+   
+    press_keys(wordle, take_guess())
+    input()
+
+def test_valid_words():
+    word_list = get_words_list()
+
+    while True:
+        guess = input('Enter a word ("q" to quit): ')
+        if guess == 'q':
+            break
+        valid_word(guess, word_list)
+    
+if __name__ ==  '__main__':
+    word = ''
+    startGame()
+    #get_source_code()
+    #testing()
+    #print(take_guess())
+    '''while word != 'q':
+        word = input('enter a word: ')
+        valid_word(word)'''
+    
