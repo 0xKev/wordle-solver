@@ -24,22 +24,83 @@ def action_present(letter: str, position: int):
         wrong_position_letters.setdefault(position, []).append(letter)
 
 
-incorrect_letters = {0: [],1: [],2: [],3: [],4: []}# format as {position: letter}
-correct_letters = {0: [],1: [],2: [],3: [],4: []}# format as {position: letter}
-wrong_position_letters = {0: [],1: [],2: [],3: [],4: []}# format as {position: letter}
+incorrect_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
+correct_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
+wrong_position_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
 letter_state_action = {
     'correct': action_correct,
     'absent': action_absent,
     'present': action_present
 }
 
+def get_index_correct_letters(correct_letters) -> list:
+    sequences = []
+    current_sequence = []
+
+    for index in range(len(correct_letters)):
+        if correct_letters[index]:
+            current_sequence.append((index, correct_letters[index][0]))
+        elif current_sequence:
+            sequences.append(current_sequence)
+            current_sequence = []
+    
+    if current_sequence:
+        sequences.append(current_sequence)
+    
+    print('sequences:', sequences)
+    return sequences
+
 def solve_next_word(incorrect_letters: dict, correct_letters: dict, wrong_position_letters: dict, word_list):
-    possible_words = []
+    print("Debug: Number of possible words before solve_next_word() = ", len(word_list))
+    #print("Debug: word_list = ", word_list)
 
+    valid_guess_wo_wrong_words = eliminate_incorrect_letters(word_list) # Eliminates incorrect letter positions
+    valid_guess_w_correct_letters = eliminate_wo_correct_letters(valid_guess_wo_wrong_words) # Eliminates words without correct letters
+    
+
+    print("Debug: Number of possible words after solve_next_word() = ", len(valid_guess_w_correct_letters))
+    if len(valid_guess_w_correct_letters) < 50:
+        print("Possible words:", valid_guess_w_correct_letters)
+
+
+def eliminate_incorrect_letters(word_list) -> list:
+    return [word for word in word_list if not any(word[position] in incorrect_letters[position] for position in range(len(word)))]
+
+def eliminate_wo_correct_letters(word_list) -> list:
+    filtered_word_list = []
     for word in word_list:
-        for letter, position in enumerate(word):
-            pass
+        all_sequence_match = True
+        for seq in get_index_correct_letters(correct_letters):
+            start_index = seq[0][0]
+            end_index = len(seq) + start_index
+            seq_letters = ''.join([letter for _, letter in seq]) # every seq is in the (index, letter) format. using _, bc index isn't used in this operation 
+            if word[start_index:end_index] != seq_letters:
+                all_sequence_match = False
+                break
+        
+        if all_sequence_match:
+            filtered_word_list.append(word)
 
+    return filtered_word_list
+
+
+
+'''
+# could be useful for correct but wrong pos words so saving this for now
+def eliminate_wo_correct_letters(word_list) -> list:
+    highest_word_value = 0
+    filtered_word_list = []
+    for word in word_list:
+        word_value = 0
+        for position, letter in enumerate(word):
+            if letter in correct_letters[position]:
+                word_value += 1
+        highest_word_value = word_value
+        if word_value >= highest_word_value:
+            filtered_word_list.append(word)
+    
+    return filtered_word_list'''
+    
 
 def get_letter_status(wordle: webdriver, row: int):
     WebDriverWait(wordle, 3)   
@@ -69,7 +130,7 @@ def get_letter_status(wordle: webdriver, row: int):
                 #incorrect_letters[position].append(letter)
 
             else:
-                letter_state_action[letter_data_state](letter, position)
+                letter_state_action[letter_data_state](letter.lower(), position)
                 #letter_state_action[letter_data_state](letter, position) # only used for new letters!!! this is rewriting the results before causing issues
             #print('condition activates') # debug
     
@@ -152,47 +213,11 @@ def manual_play(wordle: webdriver):
         guess = user_guess()
         submit_guess(wordle, guess)
         get_letter_status(wordle, attempts)
+        solve_next_word(incorrect_letters, correct_letters, wrong_position_letters, get_words_list())
         print()
         attempts += 1
 
-    print('Max tries reached (6)')
-    
-def get_source_code():
-
-    url = 'https://www.nytimes.com/games/wordle/index.html'
-    response = requests.get(url)
-
-    if response.status_code == 200:
-        wordle = webdriver.Chrome()
-        wordle.get('https://www.nytimes.com/games/wordle/index.html')
-
-        play_button = wordle.find_element(By.XPATH, "//button[@type='button']")
-        play_button.click()
-
-        x_button = wordle.find_element(By.XPATH, "//button[@type='button']")
-        x_button.click()
-        wordle.implicitly_wait(5)
-
-
-        pageSource = wordle.page_source
-        #wordle.quit()
-        input()
-        soup = BeautifulSoup(pageSource, 'html.parser')
-        print(soup.prettify())
-
-def testing():
-    wordle = webdriver.Chrome()
-    wordle.get('https://www.nytimes.com/games/wordle/index.html')
-
-    play_button = wordle.find_element(By.XPATH, "//button[@type='button']")
-    play_button.click()
-
-    x_button = wordle.find_element(By.XPATH, "//button[@type='button']")
-    x_button.click()
-
-   
-    press_keys(wordle, take_guess())
-    input()
+    print('Max tries reached (6)')   
 
 def test_valid_words():
     word_list = get_words_list()
