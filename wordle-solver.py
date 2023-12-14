@@ -191,7 +191,9 @@ def startGame():
     wordle = webdriver.Chrome(options=chrome_options)
     wordle.get('https://www.nytimes.com/games/wordle/index.html')
 
-    play_button = wordle.find_element(By.XPATH, "//button[@type='button']")
+    wait = WebDriverWait(wordle, 5)
+    
+    play_button = wait.until(EC.presence_of_element_located((By.XPATH, f'//button[@type="button"]')))
     play_button.click()
 
     x_button = wordle.find_element(By.XPATH, "//button[@type='button']")
