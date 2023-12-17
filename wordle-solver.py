@@ -47,7 +47,6 @@ def get_index_correct_letters(correct_letters) -> list:
     if current_sequence:
         sequences.append(current_sequence)
     
-    print('sequences:', sequences)
     return sequences
 
 def solve_next_word(incorrect_letters: dict, correct_letters: dict, wrong_position_letters: dict, word_list):
@@ -56,7 +55,7 @@ def solve_next_word(incorrect_letters: dict, correct_letters: dict, wrong_positi
 
     valid_guess_wo_wrong_words = eliminate_incorrect_letters(word_list) # Eliminates incorrect letter positions
     valid_guess_w_correct_letters = eliminate_wo_correct_letters(valid_guess_wo_wrong_words) # Eliminates words without correct letters
-    
+    #valid_guess_correct_letters_wrong_pos = finetune_valid_guesses(valid_guess_w_correct_letters)
 
     print("Debug: Number of possible words after solve_next_word() = ", len(valid_guess_w_correct_letters))
     if len(valid_guess_w_correct_letters) < 50:
@@ -83,7 +82,28 @@ def eliminate_wo_correct_letters(word_list) -> list:
 
     return filtered_word_list
 
+def show_correct_answer(wordle: webdriver):
+    
+    wait = WebDriverWait(wordle, 10)
+    
+    #exit_stats_element = wait.until(EC.presence_of_element_located((By.XPATH, '//button[@class="Modal-module_closeIconButton__y9b6c"]')))
+    #exit_stats_element.click()
+    
+    correct_word_element = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="Toast-module_toast__iiVsN"]')))
+    correct_word = correct_word_element.text
+    #//div[@class="Toast-module_toast__iiVsN"]
+    
 
+    return correct_word
+    
+'''def finetune_valid_guesses(word_list) -> list:
+    filtered_word_list = []
+    for word in word_list:
+        for position, letter in enumerate(wrong_position_letters):
+            if word[position] not in wrong_position_letters[position]:
+                pass'''
+                
+                
 
 '''
 # could be useful for correct but wrong pos words so saving this for now
@@ -212,6 +232,8 @@ def manual_play(wordle: webdriver):
     attempts = 1
 
     while attempts <= 6:
+        if attempts != 6:
+            print('This is attempt', attempts)
         guess = user_guess()
         submit_guess(wordle, guess)
         get_letter_status(wordle, attempts)
@@ -219,7 +241,11 @@ def manual_play(wordle: webdriver):
         print()
         attempts += 1
 
-    print('Max tries reached (6)')   
+    print('Final attempt (6)')   
+    
+    correct_answer = show_correct_answer(wordle)
+    print('The correct word is', correct_answer)
+    input()
 
 def test_valid_words():
     word_list = get_words_list()
