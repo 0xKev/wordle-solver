@@ -54,12 +54,14 @@ def solve_next_word(incorrect_letters: dict, correct_letters: dict, wrong_positi
     #print("Debug: word_list = ", word_list)
 
     valid_guess_wo_wrong_words = eliminate_incorrect_letters(word_list) # Eliminates incorrect letter positions
-    valid_guess_w_correct_letters = eliminate_wo_correct_letters(valid_guess_wo_wrong_words) # Eliminates words without correct letters
-    #valid_guess_correct_letters_wrong_pos = finetune_valid_guesses(valid_guess_w_correct_letters)
+    valid_guess_correct_letters = eliminate_wo_correct_letters(valid_guess_wo_wrong_words) # Eliminates words without correct letters
+    valid_guess_correct_letters_wrong_pos = finetune_valid_guesses(valid_guess_correct_letters)
+    
+    debug_wordlist = valid_guess_correct_letters_wrong_pos
 
-    print("Debug: Number of possible words after solve_next_word() = ", len(valid_guess_w_correct_letters))
-    if len(valid_guess_w_correct_letters) < 50:
-        print("Possible words:", valid_guess_w_correct_letters)
+    print("Debug: Number of possible words after solve_next_word() = ", len(debug_wordlist))
+    if len(debug_wordlist) < 200:
+        print("Possible words (valid_guess_correct_letters_wrong_pos):", debug_wordlist)
 
 
 def eliminate_incorrect_letters(word_list) -> list:
@@ -96,14 +98,29 @@ def show_correct_answer(wordle: webdriver):
 
     return correct_word
     
-'''def finetune_valid_guesses(word_list) -> list:
+def finetune_valid_guesses(word_list) -> list:
     filtered_word_list = []
+    
     for word in word_list:
-        for position, letter in enumerate(wrong_position_letters):
-            if word[position] not in wrong_position_letters[position]:
-                pass'''
-                
-                
+        valid_word = True
+        for position, wrong_pos_letters in wrong_position_letters.items():
+            if word[position] in wrong_pos_letters:
+                valid_word = False
+                break
+            
+            #if word[position] not in sum(wrong_position_letters.values(), []): # sum is used to concatenate all the lists into one list []
+            required_letters = sum(wrong_position_letters.values(), [])
+            if not all(letter in word for letter in required_letters):
+                valid_word = False
+                break
+            
+        
+        if valid_word:
+            filtered_word_list.append(word)
+            
+    return filtered_word_list
+  
+        
 
 '''
 # could be useful for correct but wrong pos words so saving this for now
