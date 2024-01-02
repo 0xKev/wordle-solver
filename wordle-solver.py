@@ -55,19 +55,24 @@ def solve_next_word(incorrect_letters: dict, correct_letters: dict, wrong_positi
 
     valid_guess_wo_wrong_words = eliminate_incorrect_letters(word_list) # Eliminates incorrect letter positions
     valid_guess_correct_letters = eliminate_wo_correct_letters(valid_guess_wo_wrong_words) # Eliminates words without correct letters
-    valid_guess_correct_letters_wrong_pos = finetune_valid_guesses(valid_guess_correct_letters)
+    valid_guess_correct_letters_wrong_pos = eliminate_wrong_pos_letters(valid_guess_correct_letters)
     
     debug_wordlist = valid_guess_correct_letters_wrong_pos
 
     print("Debug: Number of possible words after solve_next_word() = ", len(debug_wordlist))
+
     if len(debug_wordlist) < 200:
         print("Possible words (valid_guess_correct_letters_wrong_pos):", debug_wordlist)
 
+    print("Next possible guess:", letter_frequency_rating(debug_wordlist))
+
 
 def eliminate_incorrect_letters(word_list) -> list:
+    # eliminates words that overlap with the incorrect letters
     return [word for word in word_list if not any(word[position] in incorrect_letters[position] for position in range(len(word)))]
 
 def eliminate_wo_correct_letters(word_list) -> list:
+    # eliminates words without the correct letters
     filtered_word_list = []
     for word in word_list:
         all_sequence_match = True
@@ -84,21 +89,8 @@ def eliminate_wo_correct_letters(word_list) -> list:
 
     return filtered_word_list
 
-def show_correct_answer(wordle: webdriver):
-    
-    wait = WebDriverWait(wordle, 10)
-    
-    #exit_stats_element = wait.until(EC.presence_of_element_located((By.XPATH, '//button[@class="Modal-module_closeIconButton__y9b6c"]')))
-    #exit_stats_element.click()
-    
-    correct_word_element = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="Toast-module_toast__iiVsN"]')))
-    correct_word = correct_word_element.text
-    #//div[@class="Toast-module_toast__iiVsN"]
-    
-
-    return correct_word
-    
-def finetune_valid_guesses(word_list) -> list:
+def eliminate_wrong_pos_letters(word_list) -> list:
+    # elminates words that overlap with the correct letters but wrong position
     filtered_word_list = []
     
     for word in word_list:
@@ -119,8 +111,85 @@ def finetune_valid_guesses(word_list) -> list:
             filtered_word_list.append(word)
             
     return filtered_word_list
-  
+
+def letter_frequency_rating(word_list: list) -> tuple:
+    # sorta works but something is wrong with counting freq values, it values aking > aging
+    # its bc of set(), the g duplicate ends up not being counted so might need to remove set
+    letter_frequency = {
+        'E' : 12.0,
+        'T' : 9.10,
+        'A' : 8.12,
+        'O' : 7.68,
+        'I' : 7.31,
+        'N' : 6.95,
+        'S' : 6.28,
+        'R' : 6.02,
+        'H' : 5.92,
+        'D' : 4.32,
+        'L' : 3.98,
+        'U' : 2.88,
+        'C' : 2.71,
+        'M' : 2.61,
+        'F' : 2.30,
+        'Y' : 2.11,
+        'W' : 2.09,
+        'G' : 2.03,
+        'P' : 1.82,
+        'B' : 1.49,
+        'V' : 1.11,
+        'K' : 0.69,
+        'X' : 0.17,
+        'Q' : 0.11,
+        'J' : 0.10,
+        'Z' : 0.07 
+        }
+
+    # need to fix: code below works, but commented code doesn't
+    highest_word_score = (0,)
+
+    for word in word_list:
+        word_score = 0
+
+        for letter in (word): # using set to prevent duplicate letters
+            if letter not in sum(incorrect_letters.values(), []):
+                word_score += letter_frequency.get(letter, 0) # must convert lower to upper
         
+        if highest_word_score[0] == 0 or word_score > highest_word_score:
+            highest_word_score = (word_score, word)
+
+    return highest_word_score
+
+    '''
+    highest_word_score = (0,)
+
+    for word in word_list:
+        word_score = 0
+
+        for letter in set(word): # using set to prevent duplicate letters
+            if letter not in sum(incorrect_letters.values(), []):
+                word_score += letter_frequency.get(letter.upper(), 0) # must convert lower to upper
+        
+        if highest_word_score[0] == 0 or word_score > highest_word_score[0]:
+            highest_word_score = (word_score, word)
+
+    return highest_word_score
+    '''
+
+
+  
+def show_correct_answer(wordle: webdriver):
+    # breaks when user guesses correct word
+    # if possible words = 1, then show that word
+    wait = WebDriverWait(wordle, 10)
+    
+    #exit_stats_element = wait.until(EC.presence_of_element_located((By.XPATH, '//button[@class="Modal-module_closeIconButton__y9b6c"]')))
+    #exit_stats_element.click()
+    
+    correct_word_element = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="Toast-module_toast__iiVsN"]')))
+    correct_word = correct_word_element.text
+    #//div[@class="Toast-module_toast__iiVsN"]
+
+    return correct_word        
 
 '''
 # could be useful for correct but wrong pos words so saving this for now
