@@ -12,14 +12,44 @@ import logging
 
 # Actions for letter status [incorrect, correct, present]
 def action_correct(letter: str, position: int):
+    """
+    Action to perform when a letter is correct.
+
+    Parameters:
+    - letter: The correct letter.
+    - position: The position of the letter.
+
+    Returns:
+    None
+    """
     if letter not in correct_letters.get(position, []):
         correct_letters.setdefault(position, []).append(letter)
 
 def action_absent(letter: str, position: int):
+    """
+    Action to perform when a letter is absent.
+
+    Parameters:
+    - letter: The absent letter.
+    - position: The position of the letter.
+
+    Returns:
+    None
+    """
     if letter not in incorrect_letters.get(position, []):
         incorrect_letters.setdefault(position, []).append(letter)
 
 def action_present(letter: str, position: int):
+    """
+    Action to perform when a letter is present but in the wrong position.
+
+    Parameters:
+    - letter: The present letter.
+    - position: The position of the letter.
+
+    Returns:
+    None
+    """
     if letter not in wrong_position_letters.get(position, []):
         wrong_position_letters.setdefault(position, []).append(letter)
 
@@ -34,6 +64,15 @@ letter_state_action = {
 }
 
 def get_index_correct_letters(correct_letters) -> list:
+    """
+    Get the index and letter of correct letters.
+
+    Parameters:
+    - correct_letters: A dictionary of correct letters.
+
+    Returns:
+    - sequences: A list of sequences of correct letters.
+    """
     sequences = []
     current_sequence = []
 
@@ -50,6 +89,16 @@ def get_index_correct_letters(correct_letters) -> list:
     return sequences
 
 def solve_next_word(word_list, incorrect_letters):
+    """
+    Solve the next word based on the current word list and incorrect letters.
+
+    Parameters:
+    - word_list: The list of possible words.
+    - incorrect_letters: A dictionary of incorrect letters.
+
+    Returns:
+    None
+    """
     print("Debug: Number of possible words before solve_next_word() = ", len(word_list))
     #print("Debug: word_list = ", word_list)
 
@@ -59,20 +108,36 @@ def solve_next_word(word_list, incorrect_letters):
     
     debug_wordlist = valid_guess_correct_letters_wrong_pos
 
-    print("Debug: Number of possible words after solve_next_word() = ", len(debug_wordlist))
+    '''print("Debug: Number of possible words after solve_next_word() = ", len(debug_wordlist))
 
     if len(debug_wordlist) < 200:
-        print("Possible words (valid_guess_correct_letters_wrong_pos):", debug_wordlist)
+        print("Possible words (valid_guess_correct_letters_wrong_pos):", debug_wordlist)'''
 
     print("Next possible guess:", letter_frequency_rating(debug_wordlist, incorrect_letters))
 
 
 def eliminate_incorrect_letters(word_list) -> list:
-    # eliminates words that overlap with the incorrect letters
+    """
+    Eliminate words that overlap with the incorrect letters.
+
+    Parameters:
+    - word_list: The list of words.
+
+    Returns:
+    - filtered_word_list: The filtered list of words.
+    """
     return [word for word in word_list if not any(word[position] in incorrect_letters[position] for position in range(len(word)))]
 
 def eliminate_wo_correct_letters(word_list) -> list:
-    # eliminates words without the correct letters
+    """
+    Eliminate words without the correct letters.
+
+    Parameters:
+    - word_list: The list of words.
+
+    Returns:
+    - filtered_word_list: The filtered list of words.
+    """
     filtered_word_list = []
     for word in word_list:
         all_sequence_match = True
@@ -90,7 +155,15 @@ def eliminate_wo_correct_letters(word_list) -> list:
     return filtered_word_list
 
 def eliminate_wrong_pos_letters(word_list) -> list:
-    # elminates words that overlap with the correct letters but wrong position
+    """
+    Eliminate words that overlap with the correct letters but in the wrong position.
+
+    Parameters:
+    - word_list: The list of words.
+
+    Returns:
+    - filtered_word_list: The filtered list of words.
+    """
     filtered_word_list = []
     
     for word in word_list:
@@ -113,8 +186,16 @@ def eliminate_wrong_pos_letters(word_list) -> list:
     return filtered_word_list
 
 def letter_frequency_rating(word_list: list, incorrect_letters: list) -> tuple:
-    # sorta works but something is wrong with counting freq values, it values aking > aging
-    # its bc of set(), the g duplicate ends up not being counted so might need to remove set
+    """
+    Calculate the letter frequency rating for each word in the word list.
+
+    Parameters:
+    - word_list: The list of words.
+    - incorrect_letters: A dictionary of incorrect letters.
+
+    Returns:
+    - highest_word_score: A tuple containing the highest word score and the corresponding word.
+    """
     letter_frequency = {
         'E' : 12.0,
         'T' : 9.10,
@@ -145,8 +226,6 @@ def letter_frequency_rating(word_list: list, incorrect_letters: list) -> tuple:
         }
 
     highest_word_score = (0,)
-
-    print(incorrect_letters.values())
     for word in word_list:
         word_score = 0
 
@@ -160,37 +239,33 @@ def letter_frequency_rating(word_list: list, incorrect_letters: list) -> tuple:
     return highest_word_score
   
 def show_correct_answer(wordle: webdriver):
-    # breaks when user guesses correct word
-    # if possible words = 1, then show that word
+    """
+    Show the correct answer in the Wordle game.
+
+    Parameters:
+    - wordle: The webdriver instance for the Wordle game.
+
+    Returns:
+    - correct_word: The correct word.
+    """
     wait = WebDriverWait(wordle, 10)
-    
-    #exit_stats_element = wait.until(EC.presence_of_element_located((By.XPATH, '//button[@class="Modal-module_closeIconButton__y9b6c"]')))
-    #exit_stats_element.click()
     
     correct_word_element = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="Toast-module_toast__iiVsN"]')))
     correct_word = correct_word_element.text
-    #//div[@class="Toast-module_toast__iiVsN"]
 
     return correct_word        
-
-'''
-# could be useful for correct but wrong pos words so saving this for now
-def eliminate_wo_correct_letters(word_list) -> list:
-    highest_word_value = 0
-    filtered_word_list = []
-    for word in word_list:
-        word_value = 0
-        for position, letter in enumerate(word):
-            if letter in correct_letters[position]:
-                word_value += 1
-        highest_word_value = word_value
-        if word_value >= highest_word_value:
-            filtered_word_list.append(word)
     
-    return filtered_word_list'''
-    
-
 def get_letter_status(wordle: webdriver, row: int):
+    """
+    Get the letter status for a given row in the Wordle game.
+
+    Parameters:
+    - wordle: The webdriver instance for the Wordle game.
+    - row: The row number.
+
+    Returns:
+    None
+    """
     WebDriverWait(wordle, 3)   
     row = wordle.find_element(By.XPATH, f'//div[@aria-label="Row {row}"]')
 
@@ -201,32 +276,30 @@ def get_letter_status(wordle: webdriver, row: int):
         if letter_status[4].get_attribute('data-state') != 'tbd':
             break
     
-    for position, tile in enumerate(letter_status): # Removed start = 1 so it's easier to work with solve_next_word
+    for position, tile in enumerate(letter_status):
         letter_data_state = tile.get_attribute('data-state')
         letter = tile.text
-        #letters_in_incorrect_set = {letter[0] for letter in incorrect_letters}
-        #letters_in_correct_set = {letter[0] for letter in correct_letters}
-        #print(letter) # debug
-        print(f'get letter status: {letter}, {letter_data_state}') # debug
         if letter_data_state in letter_state_action:
             if letter in correct_letters[position]:
-                print('Duplicate correct: ', letter) # debug
-                #correct_letters[position].append(letter)
+                print('Duplicate correct: ', letter)
             
             elif letter in incorrect_letters[position]:
                 print('Duplicate incorrect: ', letter)
-                #incorrect_letters[position].append(letter)
 
             else:
                 letter_state_action[letter_data_state](letter.lower(), position)
-                #letter_state_action[letter_data_state](letter, position) # only used for new letters!!! this is rewriting the results before causing issues
-            #print('condition activates') # debug
     
     print('correct letters: ', correct_letters)
     print('wrong position letters:', wrong_position_letters)
     print('incorrect_letters:', incorrect_letters)
 
 def get_words_list():
+    """
+    Get the list of words from a file.
+
+    Returns:
+    - word_list: The list of words.
+    """
     try:
         with open('words.txt', 'r') as word_txt:
 
@@ -239,18 +312,31 @@ def get_words_list():
     return word_list
 
 def submit_guess(wordle: webdriver, letters: str):       
+    """
+    Submit a guess in the Wordle game.
+
+    Parameters:
+    - wordle: The webdriver instance for the Wordle game.
+    - letters: The letters to guess.
+
+    Returns:
+    None
+    """
     wait = WebDriverWait(wordle, 10)
     letter_button = wait.until(EC.presence_of_element_located((By.XPATH, f'//button[@data-key="z"]')))
 
-    for letter in list(letters): #To iterate over the letters 
-        print(f'submit_guess function debug: {letter}')
-        #letter_button = wait.until(EC.presence_of_element_located((By.XPATH, f'//button[@data-key="{letter}"]')))
+    for letter in list(letters):
         wordle.find_element(By.XPATH, f'//button[@data-key="{letter}"]').click()
-        #letter_button.click()
     
     wordle.find_element(By.XPATH, f'//button[@data-key="↵"]').click()
         
 def user_guess():
+    """
+    Get a valid user guess.
+
+    Returns:
+    - guess: The user's guess.
+    """
     guess = ''
     while not valid_word(guess):
 
@@ -259,15 +345,63 @@ def user_guess():
     return guess if valid_word(guess) else False
 
 def valid_word(guess: str):
+    """
+    Check if a word is valid.
+
+    Parameters:
+    - guess: The word to check.
+
+    Returns:
+    - valid: True if the word is valid, False otherwise.
+    """
     word_list = get_words_list()
     
     print('Word valid!') if guess in word_list else print('Invalid!')
     
     return guess in word_list
 
+def test_valid_words():
+    """
+    Test function for valid_word().
+    """
+    word_list = get_words_list()
+
+    while True:
+        guess = input('Enter a word ("q" to quit): ')
+        if guess == 'q':
+            break
+        valid_word(guess, word_list)
+
+def is_wordle_solved(wordle: webdriver):
+    """
+    Check if the Wordle game is solved.
+
+    Parameters:
+    - wordle: The webdriver instance for the Wordle game.
+
+    Returns:
+    - solved: True if the Wordle is solved, False otherwise.
+    """
+    wait = WebDriverWait(wordle, 10)
+
+    solved = False
+    try:
+        solved_element = wait.until(EC.presence_of_element_located((By.XPATH, "//h2[text()='Statistics']")))
+        solved_element_alt = wait.until(EC.presence_of_element_located((By.XPATH, "//h1[text()='Congratulations!']"))) if not solved_element else False
+        solved = True if solved_element or solved_element_alt else False
+    except:
+        solved = False
+
+    return solved
+
 def startGame():
+    """
+    Start the Wordle game.
+
+    Returns:
+    None
+    """
     attempts = 0
-    #guess = user_guess()
 
     # Set the logging level to supress error messages
     logging.getLogger('selenium').setLevel(logging.CRITICAL)
@@ -305,6 +439,9 @@ def manual_play(wordle: webdriver):
         guess = user_guess()
         submit_guess(wordle, guess)
         get_letter_status(wordle, attempts)
+        if is_wordle_solved(wordle):
+            print('Wordle solved!')
+            break
         solve_next_word(get_words_list(), incorrect_letters)
         print()
         attempts += 1
@@ -315,14 +452,7 @@ def manual_play(wordle: webdriver):
     print('The correct word is', correct_answer)
     input()
 
-def test_valid_words():
-    word_list = get_words_list()
 
-    while True:
-        guess = input('Enter a word ("q" to quit): ')
-        if guess == 'q':
-            break
-        valid_word(guess, word_list)
     
 if __name__ ==  '__main__':
     word = ''
