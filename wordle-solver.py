@@ -158,24 +158,6 @@ def letter_frequency_rating(word_list: list, incorrect_letters: list) -> tuple:
             highest_word_score = (word_score, word)
 
     return highest_word_score
-
-    '''
-    highest_word_score = (0,)
-
-    for word in word_list:
-        word_score = 0
-
-        for letter in set(word): # using set to prevent duplicate letters
-            if letter not in sum(incorrect_letters.values(), []):
-                word_score += letter_frequency.get(letter.upper(), 0) # must convert lower to upper
-        
-        if highest_word_score[0] == 0 or word_score > highest_word_score[0]:
-            highest_word_score = (word_score, word)
-
-    return highest_word_score
-    '''
-
-
   
 def show_correct_answer(wordle: webdriver):
     # breaks when user guesses correct word
@@ -323,7 +305,7 @@ def manual_play(wordle: webdriver):
         guess = user_guess()
         submit_guess(wordle, guess)
         get_letter_status(wordle, attempts)
-        solve_next_word(get_words_list())
+        solve_next_word(get_words_list(), incorrect_letters)
         print()
         attempts += 1
 
