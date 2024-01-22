@@ -49,7 +49,7 @@ def get_index_correct_letters(correct_letters) -> list:
     
     return sequences
 
-def solve_next_word(incorrect_letters: dict, correct_letters: dict, wrong_position_letters: dict, word_list):
+def solve_next_word(word_list, incorrect_letters):
     print("Debug: Number of possible words before solve_next_word() = ", len(word_list))
     #print("Debug: word_list = ", word_list)
 
@@ -64,7 +64,7 @@ def solve_next_word(incorrect_letters: dict, correct_letters: dict, wrong_positi
     if len(debug_wordlist) < 200:
         print("Possible words (valid_guess_correct_letters_wrong_pos):", debug_wordlist)
 
-    print("Next possible guess:", letter_frequency_rating(debug_wordlist))
+    print("Next possible guess:", letter_frequency_rating(debug_wordlist, incorrect_letters))
 
 
 def eliminate_incorrect_letters(word_list) -> list:
@@ -112,7 +112,7 @@ def eliminate_wrong_pos_letters(word_list) -> list:
             
     return filtered_word_list
 
-def letter_frequency_rating(word_list: list) -> tuple:
+def letter_frequency_rating(word_list: list, incorrect_letters: list) -> tuple:
     # sorta works but something is wrong with counting freq values, it values aking > aging
     # its bc of set(), the g duplicate ends up not being counted so might need to remove set
     letter_frequency = {
@@ -144,17 +144,17 @@ def letter_frequency_rating(word_list: list) -> tuple:
         'Z' : 0.07 
         }
 
-    # need to fix: code below works, but commented code doesn't
     highest_word_score = (0,)
 
+    print(incorrect_letters.values())
     for word in word_list:
         word_score = 0
 
-        for letter in (word): # using set to prevent duplicate letters
+        for letter in word: # using set to prevent duplicate letters
             if letter not in sum(incorrect_letters.values(), []):
-                word_score += letter_frequency.get(letter, 0) # must convert lower to upper
+                word_score += letter_frequency.get(letter.upper(), 0) # must convert lower to upper
         
-        if highest_word_score[0] == 0 or word_score > highest_word_score:
+        if highest_word_score[0] == 0 or word_score > highest_word_score[0]:
             highest_word_score = (word_score, word)
 
     return highest_word_score
@@ -323,7 +323,7 @@ def manual_play(wordle: webdriver):
         guess = user_guess()
         submit_guess(wordle, guess)
         get_letter_status(wordle, attempts)
-        solve_next_word(incorrect_letters, correct_letters, wrong_position_letters, get_words_list())
+        solve_next_word(get_words_list())
         print()
         attempts += 1
 
