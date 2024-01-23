@@ -1,10 +1,7 @@
-import requests
-from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.options import Options
 import ast # To eval python literals, does not execute code
 import logging
@@ -238,7 +235,7 @@ def letter_frequency_rating(word_list: list, incorrect_letters: list) -> tuple:
 
     return highest_word_score
   
-def show_correct_answer(wordle: webdriver):
+def show_correct_answer(wordle: webdriver, correct_letters: dict):
     """
     Show the correct answer in the Wordle game.
 
@@ -248,10 +245,16 @@ def show_correct_answer(wordle: webdriver):
     Returns:
     - correct_word: The correct word.
     """
+    if is_wordle_solved(correct_letters):
+        return ''.join((sum(correct_letters.values(), [])))
+    
     wait = WebDriverWait(wordle, 10)
     
-    correct_word_element = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="Toast-module_toast__iiVsN"]')))
-    correct_word = correct_word_element.text
+    try:
+        correct_word_element = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="Toast-module_toast__iiVsN"]')))
+        correct_word = correct_word_element.text
+    except:
+        correct_word = ''.join(sum(correct_letters.values()))
 
     return correct_word        
     
@@ -289,9 +292,9 @@ def get_letter_status(wordle: webdriver, row: int):
             else:
                 letter_state_action[letter_data_state](letter.lower(), position)
     
-    print('correct letters: ', correct_letters)
-    print('wrong position letters:', wrong_position_letters)
-    print('incorrect_letters:', incorrect_letters)
+    #print('correct letters: ', correct_letters)
+    #print('wrong position letters:', wrong_position_letters)
+    #print('incorrect_letters:', incorrect_letters)
 
 def get_words_list():
     """
@@ -323,7 +326,7 @@ def submit_guess(wordle: webdriver, letters: str):
     None
     """
     wait = WebDriverWait(wordle, 10)
-    letter_button = wait.until(EC.presence_of_element_located((By.XPATH, f'//button[@data-key="z"]')))
+    #letter_button = wait.until(EC.presence_of_element_located((By.XPATH, f'//button[@data-key="z"]')))
 
     for letter in list(letters):
         wordle.find_element(By.XPATH, f'//button[@data-key="{letter}"]').click()
@@ -337,12 +340,12 @@ def user_guess():
     Returns:
     - guess: The user's guess.
     """
-    guess = ''
-    while not valid_word(guess):
-
-        guess = input('Enter your word: ')
+    while True:
+        guess = input('Enter your guess (5 letters): ')
+        if valid_word(guess):
+            break
     
-    return guess if valid_word(guess) else False
+    return guess 
 
 def valid_word(guess: str):
     """
@@ -372,28 +375,20 @@ def test_valid_words():
             break
         valid_word(guess, word_list)
 
-def is_wordle_solved(wordle: webdriver):
+def is_wordle_solved(correct_letters: dict):
     """
-    Check if the Wordle game is solved.
+    Check if the Wordle puzzle is solved.
 
-    Parameters:
-    - wordle: The webdriver instance for the Wordle game.
+    Args:
+        correct_letters (dict): The dict for correct letters.
 
     Returns:
-    - solved: True if the Wordle is solved, False otherwise.
+        bool: True if the puzzle is solved, False otherwise.
     """
-    wait = WebDriverWait(wordle, 10)
 
-    solved = False
-    try:
-        solved_element = wait.until(EC.presence_of_element_located((By.XPATH, "//h2[text()='Statistics']")))
-        solved_element_alt = wait.until(EC.presence_of_element_located((By.XPATH, "//h1[text()='Congratulations!']"))) if not solved_element else False
-        solved = True if solved_element or solved_element_alt else False
-    except:
-        solved = False
-
-    return solved
-
+    if len(sum(correct_letters.values(), [])) == 5:
+        return True
+    
 def startGame():
     """
     Start the Wordle game.
@@ -401,8 +396,6 @@ def startGame():
     Returns:
     None
     """
-    attempts = 0
-
     # Set the logging level to supress error messages
     logging.getLogger('selenium').setLevel(logging.CRITICAL)
 
@@ -421,14 +414,9 @@ def startGame():
     x_button = wordle.find_element(By.XPATH, "//button[@type='button']")
     x_button.click()
 
-    
-    '''submit_guess(wordle, guess, attempts)
-
-    wordle.implicitly_wait(10)
-    get_letter_status(wordle, guess)'''
     manual_play(wordle)
     
-    keep_alive = input('Submit any key to quit.')
+    
 
 def manual_play(wordle: webdriver):
     attempts = 1
@@ -439,28 +427,21 @@ def manual_play(wordle: webdriver):
         guess = user_guess()
         submit_guess(wordle, guess)
         get_letter_status(wordle, attempts)
-        if is_wordle_solved(wordle):
+        if is_wordle_solved(correct_letters):
             print('Wordle solved!')
             break
         solve_next_word(get_words_list(), incorrect_letters)
         print()
         attempts += 1
-
-    print('Final attempt (6)')   
     
-    correct_answer = show_correct_answer(wordle)
+    correct_answer = show_correct_answer(wordle, correct_letters)
     print('The correct word is', correct_answer)
-    input()
+
+    input('Enter any key to quit. ')
 
 
     
 if __name__ ==  '__main__':
-    word = ''
     startGame()
-    #get_source_code()
-    #testing()
-    #print(take_guess())
-    '''while word != 'q':
-        word = input('enter a word: ')
-        valid_word(word)'''
+    
     
