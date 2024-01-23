@@ -1,3 +1,6 @@
+# Wordle-solver #
+Python program that helps you solve the daily Wordle puzzle by giving you the next best word to guess.
+
 # Usage #
 
 Make sure you're using Python3.
