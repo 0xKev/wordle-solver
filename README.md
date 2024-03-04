@@ -46,7 +46,7 @@ Repeat above steps until Wordle is solved.
 ## Installation ##
 1. Clone the repo
 ```
-git clone https://github.com/0xKev/wordle-solver
+git clone https://github.com/0xKev/wordle-solver.git
 ```
 2. Move into wordle-solver directory
 ```
