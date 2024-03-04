@@ -60,7 +60,7 @@ letter_state_action = {
     'present': action_present
 }
 
-def get_index_correct_letters(correct_letters) -> list:
+def get_index_correct_letters(correct_letters: dict) -> list:
     """
     Get the index and letter of correct letters.
 
@@ -226,7 +226,7 @@ def letter_frequency_rating(word_list: list, incorrect_letters: list) -> tuple:
     for word in word_list:
         word_score = 0
 
-        for letter in word: # using set to prevent duplicate letters
+        for letter in set(word): # using set to prevent duplicate letters
             if letter not in sum(incorrect_letters.values(), []):
                 word_score += letter_frequency.get(letter.upper(), 0) # must convert lower to upper
         
