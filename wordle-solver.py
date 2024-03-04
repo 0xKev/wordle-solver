@@ -227,7 +227,7 @@ def letter_frequency_rating(word_list: list, incorrect_letters: list) -> tuple:
         word_score = 0
 
         for letter in set(word): # using set to prevent duplicate letters
-            if letter not in sum(incorrect_letters.values(), []):
+            if letter not in sum(incorrect_letters.values(), []): # sum used with [] to concatenate all the incorrect letters into a list
                 word_score += letter_frequency.get(letter.upper(), 0) # must convert lower to upper
         
         if highest_word_score[0] == 0 or word_score > highest_word_score[0]:
