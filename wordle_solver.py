@@ -5,7 +5,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 import ast # To eval python literals, does not execute code
 import logging
-
+import sys # to exit ------ might be unncessary
+import time
+from random import randint # only used to test auto play, starting random words
 
 # Actions for letter status [incorrect, correct, present]
 def action_correct(letter: str, position: int):
@@ -85,7 +87,7 @@ def get_index_correct_letters(correct_letters: dict) -> list:
     
     return sequences
 
-def solve_next_word(word_list, incorrect_letters):
+def solve_next_word(word_list, incorrect_letters) -> str:
     """
     Solve the next word based on the current word list and incorrect letters.
 
@@ -110,7 +112,10 @@ def solve_next_word(word_list, incorrect_letters):
     if len(debug_wordlist) < 200:
         print("Possible words (valid_guess_correct_letters_wrong_pos):", debug_wordlist)'''
 
-    print("Next possible guess:", letter_frequency_rating(debug_wordlist, incorrect_letters))
+    possible_guess = letter_frequency_rating(debug_wordlist, incorrect_letters)[1]
+    print("Next possible guess:", possible_guess)
+    return possible_guess
+    
 
 
 def eliminate_incorrect_letters(word_list) -> list:
@@ -235,7 +240,7 @@ def letter_frequency_rating(word_list: list, incorrect_letters: list) -> tuple:
 
     return highest_word_score
   
-def show_correct_answer(wordle: webdriver, correct_letters: dict):
+def show_correct_answer(wordle: webdriver, correct_letters: dict) -> str:
     """
     Show the correct answer in the Wordle game.
 
@@ -245,7 +250,7 @@ def show_correct_answer(wordle: webdriver, correct_letters: dict):
     Returns:
     - correct_word: The correct word.
     """
-    if is_wordle_solved(correct_letters):
+    if is_wordle_solved(correct_letters): # two methods of retrieving answer required - answer success vs answer obtained via failure is different
         return ''.join((sum(correct_letters.values(), [])))
     
     wait = WebDriverWait(wordle, 10)
@@ -258,9 +263,9 @@ def show_correct_answer(wordle: webdriver, correct_letters: dict):
 
     return correct_word        
     
-def get_letter_status(wordle: webdriver, row: int):
+def update_letter_status(wordle: webdriver, row: int) -> None:
     """
-    Get the letter status for a given row in the Wordle game.
+    Get the letter status for a given row in the Wordle game then updates letter status dictionary.
 
     Parameters:
     - wordle: The webdriver instance for the Wordle game.
@@ -292,9 +297,6 @@ def get_letter_status(wordle: webdriver, row: int):
             else:
                 letter_state_action[letter_data_state](letter.lower(), position)
     
-    #print('correct letters: ', correct_letters)
-    #print('wrong position letters:', wrong_position_letters)
-    #print('incorrect_letters:', incorrect_letters)
 
 def get_words_list():
     """
@@ -389,7 +391,7 @@ def is_wordle_solved(correct_letters: dict):
     if len(sum(correct_letters.values(), [])) == 5:
         return True
     
-def startGame():
+def startGame(mode: str = "auto") -> bool:
     """
     Start the Wordle game.
 
@@ -402,6 +404,8 @@ def startGame():
     # Set the logging level to only show fatal messages
     chrome_options = Options()
     chrome_options.add_argument('--log-level=3')
+    chrome_options.add_argument("--incognito")
+    chrome_options.add_argument("--ignore-certificate-errors")
 
     wordle = webdriver.Chrome(options=chrome_options)
     wordle.get('https://www.nytimes.com/games/wordle/index.html')
@@ -414,9 +418,20 @@ def startGame():
     x_button = wordle.find_element(By.XPATH, "//button[@type='button']")
     x_button.click()
 
-    manual_play(wordle)
+    if mode == "manual":
+        manual_play(wordle)
+    else:
+        test_auto_play(wordle)
     
+    wordle_solved = is_wordle_solved(correct_letters)
+    answer = show_correct_answer(wordle, correct_letters)
     
+    print("The word of the day is:", answer)
+
+    wordle.quit()
+    time.sleep(1)
+
+    return wordle_solved
 
 def manual_play(wordle: webdriver):
     attempts = 1
@@ -426,7 +441,7 @@ def manual_play(wordle: webdriver):
             print('This is attempt', attempts)
         guess = user_guess()
         submit_guess(wordle, guess)
-        get_letter_status(wordle, attempts)
+        update_letter_status(wordle, attempts)
         if is_wordle_solved(correct_letters):
             print('Wordle solved!')
             break
@@ -437,11 +452,72 @@ def manual_play(wordle: webdriver):
     correct_answer = show_correct_answer(wordle, correct_letters)
     print('The correct word is', correct_answer)
 
-    input('Enter any key to quit. ')
+    input("Enter any key to quit: ") # keeps selenium alive until input
+  
+
+def auto_play(wordle: webdriver):
+    word_list = get_words_list()
+
+     
+    for guesses in range(1, 6): # wordle row starts from 1, not 0 based indexing
+        if is_wordle_solved(correct_letters): 
+            break
+
+        else:
+            guess = solve_next_word(word_list, incorrect_letters)
+            time.sleep(1)
+            submit_guess(wordle, guess)
+            time.sleep(1)
+            update_letter_status(wordle, guesses)
+            
+
+    answer = show_correct_answer(wordle, correct_letters)
+    print("The answer of the day is", answer)
+
+    input("Enter anything to quit: ")
+
+
+def test_auto_play(wordle: webdriver):
+    word_list = get_words_list()
+
+     
+    for guesses in range(1, 6): # wordle row starts from 1, not 0 based indexing
+        if is_wordle_solved(correct_letters): 
+            break
+
+        else:
+            guess = solve_next_word(word_list, incorrect_letters) if guesses != 1 else word_list[randint(0, len(word_list))]
+            time.sleep(0.75)
+            submit_guess(wordle, guess)
+            time.sleep(0.75)
+            update_letter_status(wordle, guesses)
+            
+def print_win_rate(yes: int, no: int, games: int):
+    print(f"Success rate {(yes / games) * 100}%")
+    print(f"{yes}/{games}\n\
+            {yes} games successful, {no} games failed.")
 
 
     
 if __name__ ==  '__main__':
-    startGame()
-    
+    yes = no = 0
+    games = 100
+    try:
+        for game in range(games):
+            ##### NEED TO RESET LETTER STATUS UPON LOOPS #####
+            incorrect_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
+            correct_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
+            wrong_position_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
+            time.sleep(2)
+            if startGame(): # returns True if success, else False
+                yes += 1
+            else:
+                no += 1
+    except:
+        print_win_rate(yes, no, games)
+        
+    print_win_rate(yes, no, games)
+    #word_list = get_words_list()
+
+    #starting_guess = solve_next_word(word_list, incorrect_letters)
     

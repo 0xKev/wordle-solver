@@ -176,3 +176,4 @@ cython_debug/
 # My own files to ignore
 *temp*
 *testing*
+to-do.txt
