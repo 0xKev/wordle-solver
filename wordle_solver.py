@@ -492,16 +492,16 @@ def test_auto_play(wordle: webdriver):
             time.sleep(0.75)
             update_letter_status(wordle, guesses)
             
-def print_win_rate(yes: int, no: int, games: int):
-    print(f"Success rate {(yes / games) * 100}%")
-    print(f"{yes}/{games}\n\
-            {yes} games successful, {no} games failed.")
+def print_win_rate(yes: int, no: int):
+    total_games_played = yes + no
+    print(f"Success rate {(yes / total_games_played) * 100}%")
+    print(f"{yes}/{total_games_played}\n")
 
 
     
 if __name__ ==  '__main__':
     yes = no = 0
-    games = 100
+    games = 1000
     try:
         for game in range(games):
             ##### NEED TO RESET LETTER STATUS UPON LOOPS #####
@@ -513,10 +513,13 @@ if __name__ ==  '__main__':
                 yes += 1
             else:
                 no += 1
+            
+            print_win_rate(yes, no)
+
     except:
-        print_win_rate(yes, no, games)
+        print_win_rate(yes, no)
         
-    print_win_rate(yes, no, games)
+    print_win_rate(yes, no     )
     #word_list = get_words_list()
 
     #starting_guess = solve_next_word(word_list, incorrect_letters)
