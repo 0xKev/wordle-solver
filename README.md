@@ -61,4 +61,4 @@ pip install -r requirements.txt
 With no particular timeframe:
 - [ ] Clean up code 
 - [ ] Add wordle-solver stat tracker
-- [ ] Add automatic mode without user input
+- [x] Add automatic mode without user input
