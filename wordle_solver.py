@@ -487,13 +487,16 @@ def test_auto_play(wordle: webdriver):
 
         else:
             guess = solve_next_word(word_list, incorrect_letters) if guesses != 1 else word_list[randint(0, len(word_list))]
-            time.sleep(0.75)
+            time.sleep(1)
             submit_guess(wordle, guess)
             time.sleep(0.75)
             update_letter_status(wordle, guesses)
             
 def print_win_rate(yes: int, no: int):
     total_games_played = yes + no
+    if total_games_played == 0:
+        print("No games played")
+        return
     print(f"Success rate {(yes / total_games_played) * 100}%")
     print(f"{yes}/{total_games_played}\n")
 
@@ -502,24 +505,21 @@ def print_win_rate(yes: int, no: int):
 if __name__ ==  '__main__':
     yes = no = 0
     games = 1000
-    try:
-        for game in range(games):
-            ##### NEED TO RESET LETTER STATUS UPON LOOPS #####
-            incorrect_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
-            correct_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
-            wrong_position_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
-            time.sleep(2)
-            if startGame(): # returns True if success, else False
-                yes += 1
-            else:
-                no += 1
-            
-            print_win_rate(yes, no)
-
-    except:
-        print_win_rate(yes, no)
+    
+    for game in range(games):
+        ##### NEED TO RESET LETTER STATUS UPON LOOPS #####
+        incorrect_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
+        correct_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
+        wrong_position_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
+        time.sleep(2)
+        if startGame(): # returns True if success, else False
+            yes += 1
+        else:
+            no += 1
         
-    print_win_rate(yes, no     )
+        print_win_rate(yes, no)
+
+        
     #word_list = get_words_list()
 
     #starting_guess = solve_next_word(word_list, incorrect_letters)
