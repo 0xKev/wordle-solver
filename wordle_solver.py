@@ -98,7 +98,7 @@ def solve_next_word(word_list, incorrect_letters) -> str:
     Returns:
     None
     """
-    print("Debug: Number of possible words before solve_next_word() = ", len(word_list))
+    #print("Debug: Number of possible words before solve_next_word() = ", len(word_list))
     #print("Debug: word_list = ", word_list)
 
     valid_guess_wo_wrong_words = eliminate_incorrect_letters(word_list) # Eliminates incorrect letter positions
@@ -111,6 +111,7 @@ def solve_next_word(word_list, incorrect_letters) -> str:
 
     if len(debug_wordlist) < 200:
         print("Possible words (valid_guess_correct_letters_wrong_pos):", debug_wordlist)'''
+    print("DEBUG: Number of possible words after solve_next_word():", len(debug_wordlist))
 
     possible_guess = letter_frequency_rating(debug_wordlist, incorrect_letters)[1]
     print("Next possible guess:", possible_guess)
@@ -377,7 +378,7 @@ def test_valid_words():
             break
         valid_word(guess, word_list)
 
-def is_wordle_solved(correct_letters: dict):
+def is_wordle_solved(correct_letters: dict) -> bool:
     """
     Check if the Wordle puzzle is solved.
 
@@ -390,13 +391,14 @@ def is_wordle_solved(correct_letters: dict):
 
     if len(sum(correct_letters.values(), [])) == 5:
         return True
+    return False
     
 def startGame(mode: str = "auto") -> bool:
     """
     Start the Wordle game.
 
     Returns:
-    None
+    True if game solved, else False
     """
     # Set the logging level to supress error messages
     logging.getLogger('selenium').setLevel(logging.CRITICAL)
