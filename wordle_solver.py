@@ -483,7 +483,7 @@ def test_auto_play(wordle: webdriver):
     word_list = get_words_list()
 
      
-    for guesses in range(1, 6): # wordle row starts from 1, not 0 based indexing
+    for guesses in range(1, 7): # wordle row starts from 1, not 0 based indexing
         if is_wordle_solved(correct_letters): 
             break
 
@@ -491,7 +491,7 @@ def test_auto_play(wordle: webdriver):
             guess = solve_next_word(word_list, incorrect_letters) if guesses != 1 else word_list[randint(0, len(word_list))]
             time.sleep(1)
             submit_guess(wordle, guess)
-            time.sleep(0.75)
+            time.sleep(1)
             update_letter_status(wordle, guesses)
             
 def print_win_rate(yes: int, no: int):
