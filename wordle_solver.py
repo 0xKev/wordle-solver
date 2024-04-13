@@ -251,16 +251,20 @@ def show_correct_answer(wordle: webdriver, correct_letters: dict) -> str:
     Returns:
     - correct_word: The correct word.
     """
-    if is_wordle_solved(correct_letters): # two methods of retrieving answer required - answer success vs answer obtained via failure is different
-        return ''.join((sum(correct_letters.values(), [])))
+    
     
     wait = WebDriverWait(wordle, 10)
+
+    if is_wordle_solved(correct_letters):
+        return "".join((sum(correct_letters.values(), [])))
     
     try:
         correct_word_element = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="Toast-module_toast__iiVsN"]')))
         correct_word = correct_word_element.text
     except:
-        correct_word = ''.join(sum(correct_letters.values()))
+        raise Exception(
+            f"Failed to use all guesses.\nCorrect word list: {correct_letters}"
+        )
 
     return correct_word        
     
@@ -408,6 +412,7 @@ def startGame(mode: str = "auto") -> bool:
     chrome_options.add_argument('--log-level=3')
     chrome_options.add_argument("--incognito")
     chrome_options.add_argument("--ignore-certificate-errors")
+    chrome_options.add_argument("--headless")
 
     wordle = webdriver.Chrome(options=chrome_options)
     wordle.get('https://www.nytimes.com/games/wordle/index.html')
@@ -506,7 +511,7 @@ def print_win_rate(yes: int, no: int):
     
 if __name__ ==  '__main__':
     yes = no = 0
-    games = 1000
+    games = 10
     
     for game in range(games):
         ##### NEED TO RESET LETTER STATUS UPON LOOPS #####
