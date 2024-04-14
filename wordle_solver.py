@@ -24,7 +24,7 @@ def action_correct(letter: str, position: int):
     if letter not in correct_letters.get(position, []):
         correct_letters.setdefault(position, []).append(letter)
 
-def action_absent(letter: str, position: int):
+def action_absent(letter: str, position: int) -> None:
     """
     Action to perform when a letter is absent.
 
@@ -38,7 +38,7 @@ def action_absent(letter: str, position: int):
     if letter not in incorrect_letters.get(position, []):
         incorrect_letters.setdefault(position, []).append(letter)
 
-def action_present(letter: str, position: int):
+def action_present(letter: str, position: int) -> None:
     """
     Action to perform when a letter is present but in the wrong position.
 
@@ -425,10 +425,13 @@ def startGame(mode: str = "auto") -> bool:
     x_button = wordle.find_element(By.XPATH, "//button[@type='button']")
     x_button.click()
 
-    if mode == "manual":
-        manual_play(wordle)
-    else:
-        test_auto_play(wordle)
+    match mode:
+        case "manual":
+            manual_play(wordle)
+        case "rand": 
+            random_auto_play(wordle)
+        case "auto":
+            auto_play(wordle)
     
     wordle_solved = is_wordle_solved(correct_letters)
     answer = show_correct_answer(wordle, correct_letters)
@@ -455,18 +458,12 @@ def manual_play(wordle: webdriver):
         solve_next_word(get_words_list(), incorrect_letters)
         print()
         attempts += 1
-    
-    correct_answer = show_correct_answer(wordle, correct_letters)
-    print('The correct word is', correct_answer)
-
-    input("Enter any key to quit: ") # keeps selenium alive until input
   
 
 def auto_play(wordle: webdriver):
     word_list = get_words_list()
-
-     
-    for guesses in range(1, 6): # wordle row starts from 1, not 0 based indexing
+ 
+    for guesses in range(1, 7): # wordle row starts from 1, not 0 based indexing (6 guesses total)
         if is_wordle_solved(correct_letters): 
             break
 
@@ -476,18 +473,11 @@ def auto_play(wordle: webdriver):
             submit_guess(wordle, guess)
             time.sleep(1)
             update_letter_status(wordle, guesses)
-            
-
-    answer = show_correct_answer(wordle, correct_letters)
-    print("The answer of the day is", answer)
-
-    input("Enter anything to quit: ")
 
 
-def test_auto_play(wordle: webdriver):
+def random_auto_play(wordle: webdriver):
     word_list = get_words_list()
 
-     
     for guesses in range(1, 7): # wordle row starts from 1, not 0 based indexing
         if is_wordle_solved(correct_letters): 
             break
