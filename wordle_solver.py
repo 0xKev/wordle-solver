@@ -21,6 +21,7 @@ class WordleSolver:
             'present': self.action_present
         }
         self.word_list = self.get_words_list()
+        self.attempts = 0
 
     def get_words_list(self):
         """
@@ -381,7 +382,7 @@ class WordleSolver:
             return True
         return False
         
-    def startGame(self, mode: str = "auto") -> bool:
+    def startGame(self, mode: str = "auto") -> None:
         """
         Start the Wordle game.
 
@@ -422,15 +423,19 @@ class WordleSolver:
         
         print("The word of the day is:", answer)
 
+
+        # track attempts in __init__ and each play mode resets
+        
         wordle.quit()
         time.sleep(1)
 
-        return wordle_solved
+        # date;game_mode;answer;solved;guesses
 
+        
     def manual_play(self, wordle: webdriver) -> None:
-        attempts = 1
+        self.attempts = 0
 
-        while attempts <= 6:
+        while self.attempts < 7:
             if attempts != 6:
                 print('This is attempt', attempts)
             guess = self.user_guess()
@@ -439,14 +444,16 @@ class WordleSolver:
             if self.is_wordle_solved():
                 print('Wordle solved!')
                 break
-            self.solve_next_word(self.get_words_list(), incorrect_letters)
+            self.solve_next_word(self.get_words_list(), self.incorrect_letters)
             print()
             attempts += 1
     
 
     def auto_play(self, wordle: webdriver) -> None:    
+        self.attempts = 0
         for guesses in range(1, 7): # wordle row starts from 1, not 0 based indexing (6 guesses total)
             if self.is_wordle_solved(): 
+                self.attempts = guesses
                 break
 
             else:
@@ -459,7 +466,7 @@ class WordleSolver:
 
     def random_auto_play(self, wordle: webdriver) -> None:
         for guesses in range(1, 7): # wordle row starts from 1, not 0 based indexing
-            if self.is_wordle_solved(correct_letters): 
+            if self.is_wordle_solved():
                 break
 
             else:
@@ -497,7 +504,8 @@ if __name__ ==  '__main__':
         
         print_win_rate(yes, no)'''
     game = WordleSolver()
-    game.startGame()
+    mode = "rand"
+    game.startGame(mode)
 
         
     #word_list = get_words_list()
