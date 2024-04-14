@@ -433,8 +433,7 @@ class WordleSolver:
 
         
     def manual_play(self, wordle: webdriver) -> None:
-        self.attempts = 0
-
+        self.resetGame()        
         while self.attempts < 7:
             if attempts != 6:
                 print('This is attempt', attempts)
@@ -450,7 +449,7 @@ class WordleSolver:
     
 
     def auto_play(self, wordle: webdriver) -> None:    
-        self.attempts = 0
+        self.resetGame()        
         for guesses in range(1, 7): # wordle row starts from 1, not 0 based indexing (6 guesses total)
             if self.is_wordle_solved(): 
                 self.attempts = guesses
@@ -465,6 +464,7 @@ class WordleSolver:
 
 
     def random_auto_play(self, wordle: webdriver) -> None:
+        self.resetGame()        
         for guesses in range(1, 7): # wordle row starts from 1, not 0 based indexing
             if self.is_wordle_solved():
                 break
@@ -475,6 +475,12 @@ class WordleSolver:
                 self.submit_guess(wordle, guess)
                 time.sleep(1)
                 self.update_letter_status(wordle, guesses)
+
+    def resetGame(self):
+        self.attempts = 0
+        self.incorrect_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
+        self.correct_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
+        self.wrong_position_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
                 
     def print_win_rate(self, yes: int, no: int):
         total_games_played = yes + no
@@ -484,6 +490,12 @@ class WordleSolver:
         print(f"Success rate {(yes / total_games_played) * 100}%")
         print(f"{yes}/{total_games_played}\n")
 
+    def __str__(self):
+        pass
+        # date;game_mode;answer;solved;guesses
+        # write each world game to csv file
+        # look into the free google hosting? to have 10 games per day tracker with dashboard
+        # if not csv tracker, look into other databases
 
     
 if __name__ ==  '__main__':
