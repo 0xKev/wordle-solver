@@ -22,6 +22,7 @@ class WordleSolver:
         }
         self.word_list = self.get_words_list()
         self.attempts = 0
+        self.__max_attempts = 6
 
     def get_words_list(self):
         """
@@ -289,7 +290,7 @@ class WordleSolver:
 
         return correct_word        
         
-    def update_letter_status(self, wordle: webdriver, row: int) -> None:
+    def update_letter_status(self, wordle: webdriver) -> None:
         """
         Get the letter status for a given row in the Wordle game then updates letter status dictionary.
 
@@ -301,7 +302,7 @@ class WordleSolver:
         None
         """
         WebDriverWait(wordle, 3)   
-        row = wordle.find_element(By.XPATH, f'//div[@aria-label="Row {row}"]')
+        row = wordle.find_element(By.XPATH, f'//div[@aria-label="Row {self.attempts + 1}"]') # +1 compensates for 0 based indexing to 1 based for Wordle rows
 
         # Finds the updated data-state (when it changes from tbd)
         while True:
@@ -434,23 +435,23 @@ class WordleSolver:
         
     def manual_play(self, wordle: webdriver) -> None:
         self.resetGame()        
-        while self.attempts < 7:
-            if attempts != 6:
-                print('This is attempt', attempts)
+        while self.attempts < self.__max_attempts:
+            if self.attempts != 6:
+                print('This is attempt', self.attempts + 1)
             guess = self.user_guess()
             self.submit_guess(wordle, guess)
-            self.update_letter_status(wordle, attempts)
+            self.update_letter_status(wordle)
             if self.is_wordle_solved():
                 print('Wordle solved!')
                 break
-            self.solve_next_word(self.get_words_list(), self.incorrect_letters)
+            self.solve_next_word()
             print()
-            attempts += 1
+            self.attempts += 1
     
 
     def auto_play(self, wordle: webdriver) -> None:    
         self.resetGame()        
-        for guesses in range(1, 7): # wordle row starts from 1, not 0 based indexing (6 guesses total)
+        for guesses in range(self.__max_attempts): # wordle row starts from 1, not 0 based indexing (6 guesses total)
             if self.is_wordle_solved(): 
                 self.attempts = guesses
                 break
@@ -460,12 +461,12 @@ class WordleSolver:
                 time.sleep(1)
                 self.submit_guess(wordle, guess)
                 time.sleep(1)
-                self.update_letter_status(wordle, guesses)
+                self.update_letter_status(wordle)
 
 
     def random_auto_play(self, wordle: webdriver) -> None:
         self.resetGame()        
-        for guesses in range(1, 7): # wordle row starts from 1, not 0 based indexing
+        for guesses in range(self.__max_attempts): # wordle row starts from 1, not 0 based indexing
             if self.is_wordle_solved():
                 break
 
@@ -474,7 +475,7 @@ class WordleSolver:
                 time.sleep(1)
                 self.submit_guess(wordle, guess)
                 time.sleep(1)
-                self.update_letter_status(wordle, guesses)
+                self.update_letter_status(wordle)
 
     def resetGame(self):
         self.attempts = 0
@@ -516,7 +517,7 @@ if __name__ ==  '__main__':
         
         print_win_rate(yes, no)'''
     game = WordleSolver()
-    mode = "rand"
+    mode = "manual"
     game.startGame(mode)
 
         
