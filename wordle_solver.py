@@ -8,6 +8,7 @@ import logging
 import sys # to exit ------ might be unncessary
 import time
 from random import randint # only used to test auto play, starting random words
+from datetime import datetime
 
 
 class WordleSolver:
@@ -20,11 +21,14 @@ class WordleSolver:
             'absent': self.action_absent,
             'present': self.action_present
         }
-        self.word_list = self.get_words_list()
+        self.word_list: list = self.get_words_list()
         self.attempts = 0
         self.__max_attempts = 6
+        self.game_mode = ""
+        self.__answer = ""
+        self.__solved: bool = ""
 
-    def get_words_list(self):
+    def get_words_list(self) -> list[str]:
         """
         Get the list of words from a file.
 
@@ -119,24 +123,21 @@ class WordleSolver:
         - incorrect_letters: A dictionary of incorrect letters.
 
         Returns:
-        None
+        - possible_guess: Next best guess
         """
-        #print("Debug: Number of possible words before solve_next_word() = ", len(word_list))
-        #print("Debug: word_list = ", word_list)
 
-        valid_guess_wo_wrong_words = self.eliminate_incorrect_letters() # Eliminates incorrect letter positions
-        valid_guess_correct_letters = self.eliminate_wo_correct_letters(valid_guess_wo_wrong_words) # Eliminates words without correct letters
-        valid_guess_correct_letters_wrong_pos = self.eliminate_wrong_pos_letters(valid_guess_correct_letters)
-        
-        debug_wordlist = valid_guess_correct_letters_wrong_pos
+        self.word_list = self.eliminate_incorrect_letters() # Eliminates incorrect letter positions
+        print(len(self.word_list))
+        self.word_list = self.eliminate_wo_correct_letters() # Eliminates words without correct letters
+        print(len(self.word_list))
+        self.word_list = self.eliminate_wrong_pos_letters()
+        print(len(self.word_list))
 
-        '''print("Debug: Number of possible words after solve_next_word() = ", len(debug_wordlist))
+        print()
+            
+        print("DEBUG: Number of possible words after solve_next_word():", len(self.word_list))
 
-        if len(debug_wordlist) < 200:
-            print("Possible words (valid_guess_correct_letters_wrong_pos):", debug_wordlist)'''
-        print("DEBUG: Number of possible words after solve_next_word():", len(debug_wordlist))
-
-        possible_guess = self.letter_frequency_rating(debug_wordlist)[1]
+        possible_guess = self.letter_frequency_rating()[1]
         print("Next possible guess:", possible_guess)
         return possible_guess
         
@@ -154,7 +155,7 @@ class WordleSolver:
         """
         return [word for word in self.word_list if not any(word[position] in self.incorrect_letters[position] for position in range(len(word)))]
 
-    def eliminate_wo_correct_letters(self, word_list: list) -> list:
+    def eliminate_wo_correct_letters(self) -> list:
         """
         Eliminate words without the correct letters.
 
@@ -165,7 +166,7 @@ class WordleSolver:
         - filtered_word_list: The filtered list of words.
         """
         filtered_word_list = []
-        for word in word_list:
+        for word in self.word_list:
             all_sequence_match = True
             for seq in self.get_index_correct_letters():
                 start_index = seq[0][0]
@@ -180,7 +181,7 @@ class WordleSolver:
 
         return filtered_word_list
 
-    def eliminate_wrong_pos_letters(self, word_list: str) -> list:
+    def eliminate_wrong_pos_letters(self) -> list:
         """
         Eliminate words that overlap with the correct letters but in the wrong position.
 
@@ -192,7 +193,7 @@ class WordleSolver:
         """
         filtered_word_list = []
         
-        for word in word_list:
+        for word in self.word_list:
             valid_word = True
             for position, wrong_pos_letters in self.wrong_position_letters.items():
                 if word[position] in wrong_pos_letters:
@@ -207,10 +208,10 @@ class WordleSolver:
             
             if valid_word:
                 filtered_word_list.append(word)
-                
+        
         return filtered_word_list
 
-    def letter_frequency_rating(self, word_list: list) -> tuple[int, str]:
+    def letter_frequency_rating(self) -> tuple[int, str]:
         """
         Calculate the letter frequency rating for each word in the word list.
 
@@ -251,7 +252,7 @@ class WordleSolver:
             }
 
         highest_word_score = (0,)
-        for word in word_list:
+        for word in self.word_list:
             word_score = 0
 
             for letter in set(word): # using set to prevent duplicate letters
@@ -278,7 +279,9 @@ class WordleSolver:
         wait = WebDriverWait(wordle, 10)
 
         if self.is_wordle_solved():
-            return "".join((sum(self.correct_letters.values(), [])))
+            correct_word = "".join((sum(self.correct_letters.values(), [])))
+            self.__answer = correct_word
+            return self.__answer
         
         try:
             correct_word_element = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="Toast-module_toast__iiVsN"]')))
@@ -288,7 +291,9 @@ class WordleSolver:
                 f"Failed to use all guesses.\nCorrect word list: {self.correct_letters}"
             )
 
-        return correct_word        
+        self.__answer = correct_word
+
+        return self.__answer        
         
     def update_letter_status(self, wordle: webdriver) -> None:
         """
@@ -301,28 +306,36 @@ class WordleSolver:
         Returns:
         None
         """
-        WebDriverWait(wordle, 3)   
-        row = wordle.find_element(By.XPATH, f'//div[@aria-label="Row {self.attempts + 1}"]') # +1 compensates for 0 based indexing to 1 based for Wordle rows
+        wait = WebDriverWait(wordle, 3)  
+        row_selector =  f'//div[@aria-label="Row {self.attempts + 1}"]' # +1 compensates for 0 based indexing to 1 based for Wordle rows
+
+        row = wait.until(EC.presence_of_all_elements_located((By.XPATH, row_selector)))
+        
 
         # Finds the updated data-state (when it changes from tbd)
         while True:
-            letter_status = row.find_elements(By.XPATH, './/div[@data-state]')
+            letter_status_selector = f'{row_selector}//div[@data-state]'
+            letter_status = wait.until(EC.presence_of_all_elements_located((By.XPATH, letter_status_selector)))
 
             if letter_status[4].get_attribute('data-state') != 'tbd':
                 break
+        #letter_status = wait.until(EC.presence_of_all_elements_located((By.XPATH, './/div[@data-state!="tbd"]')))
         
         for position, tile in enumerate(letter_status):
             letter_data_state = tile.get_attribute('data-state')
             letter = tile.text
             if letter_data_state in self.letter_state_action:
-                if letter in self.correct_letters[position]:
+                if letter.lower() in self.correct_letters[position]:
                     print('Duplicate correct: ', letter)
                 
-                elif letter in self.incorrect_letters[position]:
+                elif letter.lower() in self.incorrect_letters[position]:
                     print('Duplicate incorrect: ', letter)
 
                 else:
                     self.letter_state_action[letter_data_state](letter.lower(), position)
+        print("Incorrect letters:", self.incorrect_letters)
+        print("Correct letters:", self.correct_letters)
+        print("Wrong position letters:", self.wrong_position_letters)
         
     def submit_guess(self, wordle: webdriver, letters: str) -> None:       
         """
@@ -398,7 +411,7 @@ class WordleSolver:
         chrome_options.add_argument('--log-level=3')
         chrome_options.add_argument("--incognito")
         chrome_options.add_argument("--ignore-certificate-errors")
-        chrome_options.add_argument("--headless")
+        #chrome_options.add_argument("--headless")
 
         wordle = webdriver.Chrome(options=chrome_options)
         wordle.get('https://www.nytimes.com/games/wordle/index.html')
@@ -411,6 +424,7 @@ class WordleSolver:
         x_button = wordle.find_element(By.XPATH, "//button[@type='button']")
         x_button.click()
 
+        self.game_mode = mode
         match mode:
             case "manual":
                 self.manual_play(wordle)
@@ -419,7 +433,11 @@ class WordleSolver:
             case "auto":
                 self.auto_play(wordle)
         
-        wordle_solved = self.is_wordle_solved()
+        self.__solved: bool = self.is_wordle_solved()
+        if self.__solved:
+            print("Wordle solved!")
+        else:
+            print("Wordle not solved!")
         answer = self.show_correct_answer(wordle)
         
         print("The word of the day is:", answer)
@@ -432,7 +450,6 @@ class WordleSolver:
 
         # date;game_mode;answer;solved;guesses
 
-        
     def manual_play(self, wordle: webdriver) -> None:
         self.resetGame()        
         while self.attempts < self.__max_attempts:
@@ -448,37 +465,41 @@ class WordleSolver:
             print()
             self.attempts += 1
     
-
     def auto_play(self, wordle: webdriver) -> None:    
         self.resetGame()        
         for guesses in range(self.__max_attempts): # wordle row starts from 1, not 0 based indexing (6 guesses total)
+            print("This is attempt", self.attempts + 1)
             if self.is_wordle_solved(): 
                 self.attempts = guesses
                 break
-
-            else:
-                guess = self.solve_next_word()
-                time.sleep(1)
-                self.submit_guess(wordle, guess)
-                time.sleep(1)
-                self.update_letter_status(wordle)
+           
+            guess = self.solve_next_word()
+            time.sleep(1)
+            self.submit_guess(wordle, guess)
+            time.sleep(1)
+            self.update_letter_status(wordle)
+            self.attempts += 1
 
 
     def random_auto_play(self, wordle: webdriver) -> None:
         self.resetGame()        
         for guesses in range(self.__max_attempts): # wordle row starts from 1, not 0 based indexing
+            print("This is attempt", self.attempts + 1)
             if self.is_wordle_solved():
                 break
 
-            else:
-                guess = self.solve_next_word() if guesses != 1 else self.word_list[randint(0, len(self.word_list))]
-                time.sleep(1)
-                self.submit_guess(wordle, guess)
-                time.sleep(1)
-                self.update_letter_status(wordle)
+            
+            guess = self.solve_next_word() if guesses != 0 else self.word_list[randint(0, len(self.word_list))]
+            time.sleep(1)
+            self.submit_guess(wordle, guess)
+            time.sleep(1)
+            self.update_letter_status(wordle)
+            self.attempts += 1
+
 
     def resetGame(self):
         self.attempts = 0
+        self.__answer = ""
         self.incorrect_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
         self.correct_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
         self.wrong_position_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
@@ -491,6 +512,10 @@ class WordleSolver:
         print(f"Success rate {(yes / total_games_played) * 100}%")
         print(f"{yes}/{total_games_played}\n")
 
+    def get_results(self):
+        date = datetime.today().strftime("%Y-%m-%d")
+        game_mode = mode
+    
     def __str__(self):
         pass
         # date;game_mode;answer;solved;guesses
@@ -500,24 +525,8 @@ class WordleSolver:
 
     
 if __name__ ==  '__main__':
-    '''yes = no = 0
-    games = 10
-    mode = "rand"
-    
-    for game in range(games):
-        ##### NEED TO RESET LETTER STATUS UPON LOOPS #####
-        incorrect_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
-        correct_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
-        wrong_position_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
-        time.sleep(2)
-        if startGame(mode): # returns True if success, else False
-            yes += 1
-        else:
-            no += 1
-        
-        print_win_rate(yes, no)'''
     game = WordleSolver()
-    mode = "manual"
+    mode = "rand"
     game.startGame(mode)
 
         
