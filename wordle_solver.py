@@ -10,6 +10,7 @@ import time
 from random import randint # only used to test auto play, starting random words
 from datetime import datetime
 
+from stats_manager import WordleStats
 
 class WordleSolver:
     def __init__(self, mode: str = "auto"):
@@ -405,7 +406,7 @@ class WordleSolver:
         chrome_options.add_argument('--log-level=3')
         chrome_options.add_argument("--incognito")
         chrome_options.add_argument("--ignore-certificate-errors")
-        #chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--headless")
 
         wordle = webdriver.Chrome(options=chrome_options)
         wordle.get('https://www.nytimes.com/games/wordle/index.html')
@@ -507,14 +508,14 @@ class WordleSolver:
         print(f"Success rate {(yes / total_games_played) * 100}%")
         print(f"{yes}/{total_games_played}\n")
 
-    def get_results(self) -> str:
+    def get_results(self) -> list:
         date = datetime.today().strftime("%Y-%m-%d")
         game_mode = self.game_mode
         answer = self.__answer
         solved: bool = self.__solved
         guesses = self.attempts
 
-        return f"{date};{game_mode};{answer};{solved};{guesses}"
+        return [date, game_mode, answer, solved, guesses]
     
     def __str__(self):
         raise NotImplementedError("__str__ is not coded.")
@@ -525,11 +526,14 @@ class WordleSolver:
 
     
 if __name__ ==  '__main__':
-    game = WordleSolver("manual") # no param sets it to "auto"
-    for i in range(20):
+    game = WordleSolver("rand") # no param sets it to "auto"
+    stats = WordleStats("stats.csv")
+    for i in range(80):
         game.startGame()
-        results = game.get_results()
+        results: list = game.get_results()
         print(results)
+        stats.save_stats_csv(*results)
+        print("--- Stats saved ---")
 
         
     #word_list = get_words_list()

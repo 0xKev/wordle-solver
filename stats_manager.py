@@ -18,7 +18,7 @@ class WordleStats:
         except FileExistsError:
             print(f"File exists: {self.filename}")
     
-    def save_stats_csv(self, id: int, date: datetime, game_mode: str, answer: str, solved: bool, guesses: int):
+    def save_stats_csv(self, date: str, game_mode: str, answer: str, solved: bool, guesses: int):
         with open("database/stats.csv", "a+", newline="") as stats_file: # unable to read with "a" append 
             writer = csv.writer(stats_file)
             row_data: list = [f"{date};{game_mode};{answer};{solved};{guesses}"]
