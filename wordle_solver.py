@@ -12,7 +12,7 @@ from datetime import datetime
 
 
 class WordleSolver:
-    def __init__(self):
+    def __init__(self, mode: str = "auto"):
         self.incorrect_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
         self.correct_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
         self.wrong_position_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
@@ -24,7 +24,7 @@ class WordleSolver:
         self.word_list: list = self.get_words_list()
         self.attempts = 0
         self.__max_attempts = 6
-        self.game_mode = ""
+        self.game_mode = mode
         self.__answer = ""
         self.__solved: bool = ""
 
@@ -127,16 +127,11 @@ class WordleSolver:
         """
 
         self.word_list = self.eliminate_incorrect_letters() # Eliminates incorrect letter positions
-        print(len(self.word_list))
         self.word_list = self.eliminate_wo_correct_letters() # Eliminates words without correct letters
-        print(len(self.word_list))
         self.word_list = self.eliminate_wrong_pos_letters()
-        print(len(self.word_list))
 
         print()
             
-        print("DEBUG: Number of possible words after solve_next_word():", len(self.word_list))
-
         possible_guess = self.letter_frequency_rating()[1]
         print("Next possible guess:", possible_guess)
         return possible_guess
@@ -333,10 +328,7 @@ class WordleSolver:
 
                 else:
                     self.letter_state_action[letter_data_state](letter.lower(), position)
-        print("Incorrect letters:", self.incorrect_letters)
-        print("Correct letters:", self.correct_letters)
-        print("Wrong position letters:", self.wrong_position_letters)
-        
+                
     def submit_guess(self, wordle: webdriver, letters: str) -> None:       
         """
         Submit a guess in the Wordle game.
@@ -396,7 +388,7 @@ class WordleSolver:
             return True
         return False
         
-    def startGame(self, mode: str = "auto") -> None:
+    def startGame(self) -> None:
         """
         Start the Wordle game.
 
@@ -404,6 +396,8 @@ class WordleSolver:
         True if game solved, else False
         """
         # Set the logging level to supress error messages
+        self.resetGame()     # Resets to play same instance again    
+
         logging.getLogger('selenium').setLevel(logging.CRITICAL)
 
         # Set the logging level to only show fatal messages
@@ -424,8 +418,7 @@ class WordleSolver:
         x_button = wordle.find_element(By.XPATH, "//button[@type='button']")
         x_button.click()
 
-        self.game_mode = mode
-        match mode:
+        match self.game_mode:
             case "manual":
                 self.manual_play(wordle)
             case "rand": 
@@ -451,22 +444,21 @@ class WordleSolver:
         # date;game_mode;answer;solved;guesses
 
     def manual_play(self, wordle: webdriver) -> None:
-        self.resetGame()        
         while self.attempts < self.__max_attempts:
             if self.attempts != 6:
                 print('This is attempt', self.attempts + 1)
             guess = self.user_guess()
             self.submit_guess(wordle, guess)
             self.update_letter_status(wordle)
+            self.attempts += 1
             if self.is_wordle_solved():
                 print('Wordle solved!')
                 break
             self.solve_next_word()
             print()
-            self.attempts += 1
+            
     
     def auto_play(self, wordle: webdriver) -> None:    
-        self.resetGame()        
         for guesses in range(self.__max_attempts): # wordle row starts from 1, not 0 based indexing (6 guesses total)
             print("This is attempt", self.attempts + 1)
             if self.is_wordle_solved(): 
@@ -481,8 +473,8 @@ class WordleSolver:
             self.attempts += 1
 
 
+
     def random_auto_play(self, wordle: webdriver) -> None:
-        self.resetGame()        
         for guesses in range(self.__max_attempts): # wordle row starts from 1, not 0 based indexing
             print("This is attempt", self.attempts + 1)
             if self.is_wordle_solved():
@@ -497,9 +489,12 @@ class WordleSolver:
             self.attempts += 1
 
 
-    def resetGame(self):
+
+    def resetGame(self) -> None:
+        self.word_list = self.get_words_list()
         self.attempts = 0
         self.__answer = ""
+        self.__solved = ""
         self.incorrect_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
         self.correct_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
         self.wrong_position_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
@@ -512,12 +507,17 @@ class WordleSolver:
         print(f"Success rate {(yes / total_games_played) * 100}%")
         print(f"{yes}/{total_games_played}\n")
 
-    def get_results(self):
+    def get_results(self) -> str:
         date = datetime.today().strftime("%Y-%m-%d")
-        game_mode = mode
+        game_mode = self.game_mode
+        answer = self.__answer
+        solved: bool = self.__solved
+        guesses = self.attempts
+
+        return f"{date};{game_mode};{answer};{solved};{guesses}"
     
     def __str__(self):
-        pass
+        raise NotImplementedError("__str__ is not coded.")
         # date;game_mode;answer;solved;guesses
         # write each world game to csv file
         # look into the free google hosting? to have 10 games per day tracker with dashboard
@@ -525,9 +525,11 @@ class WordleSolver:
 
     
 if __name__ ==  '__main__':
-    game = WordleSolver()
-    mode = "rand"
-    game.startGame(mode)
+    game = WordleSolver("manual") # no param sets it to "auto"
+    for i in range(20):
+        game.startGame()
+        results = game.get_results()
+        print(results)
 
         
     #word_list = get_words_list()
