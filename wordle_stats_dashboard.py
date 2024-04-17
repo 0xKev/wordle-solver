@@ -56,7 +56,7 @@ class WordleDashboard:
     
     def show_daily_stats(self):
         today = datetime.today().strftime("%Y-%m-%d")
-        game_modes: list = self.raw_data["game_mode"].unique()
+        game_modes: list = self.raw_data["game_mode"].unique().tolist() + ["all"]
 
         data = {}
 
@@ -65,8 +65,26 @@ class WordleDashboard:
             data[mode]["game_number"] = range(1, len(data[mode]) + 1)
 
         selected_mode = st.selectbox("Select game mode: ", game_modes)
+        chart_data = data[selected_mode].set_index("game_number")
 
-        st.line_chart(data=data[selected_mode], x="game_number", y="guesses")
+        st.line_chart(data=chart_data, y=["guesses", "solved"])
+
+    def display_sidebar(self):
+        menu_options = {
+                "Daily": self.show_daily_stats, 
+                "Game Mode Distribution": self.show_game_mode_dist,
+                "Guess Distribution": self.show_guess_dist, 
+                "Success Rate": self.show_success_rate, 
+                "Streaks": self.show_streaks
+        }
+
+        with st.sidebar:
+            selected_option = st.selectbox(
+            "View stats", 
+            list(menu_options.keys())
+        )
+        
+        menu_options[selected_option]()
 
     def show_all_stats(self):
         game_modes = self.raw_data["game_mode"].unique()
@@ -83,28 +101,26 @@ class WordleDashboard:
         data[selected_mode].set_index("game_number")
         # Display the line graph for the selected game mode
         st.line_chart(data=data[selected_mode], x="game_number", y="guesses")
+    
+    def show_game_mode_dist(self):
+        st.write("game mode dist")
 
+    def show_guess_dist(self):
+        st.write("guess dist")
+
+    def show_success_rate(self):
+        st.write("success rate")
+
+    def show_streaks(self):
+        st.write("streaks!")
     
     def run_app(self) -> None:
         st.title("Wordle Solver Stats Dashboard")
 
-        with st.sidebar:
-            menu_options = st.selectbox(
-            "View stats", 
-            (
-                "Daily", 
-                "Game Mode Distribution", 
-                "Guess Distribution", 
-                "Success Rate", 
-                "Streaks"
-                )
-        )
-        
-        match menu_options:
-            case "Daily":
-                self.show_daily_stats()
+        self.display_sidebar()
 
-            
+        
+        
 
         stats_df = self.load_data()
 

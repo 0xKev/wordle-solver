@@ -20,10 +20,21 @@ class WordleStats:
             print(f"File exists: {self.file}")
     
     def save_stats_csv(self, date: str, game_mode: str, answer: str, solved: bool, guesses: int):
-        with open("database/stats.csv", "a+", newline="") as stats_file: # unable to read with "a" append 
+        with open(self.file, "a+", newline="") as stats_file: # unable to read with "a" append 
             writer = csv.writer(stats_file)
             row_data: list = [f"{date};{game_mode};{answer};{solved};{guesses}"]
             writer.writerow(row_data)
+
+    def get_answer(self, date: str = None) -> str:
+        with open(self.file, "r", newline="") as stats_file:
+            reader = csv.reader(stats_file, delimiter=";")
+            next(reader)
+            for row in reader:
+                if date:
+                    if row[0] == date:
+                        return row[2]
+                else:
+                    return row[2]
 
     def get_file(self):
         return self.file
