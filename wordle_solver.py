@@ -465,7 +465,6 @@ class WordleSolver:
             if self.is_wordle_solved(): 
                 self.attempts = guesses
                 break
-           
             guess = self.solve_next_word()
             time.sleep(1)
             self.submit_guess(wordle, guess)
@@ -526,9 +525,9 @@ class WordleSolver:
 
     
 if __name__ ==  '__main__':
-    game = WordleSolver("rand") # no param sets it to "auto"
+    game = WordleSolver("auto") # no param sets it to "auto"
     stats = WordleStats("stats.csv")
-    for i in range(80):
+    for i in range(200):
         game.startGame()
         results: list = game.get_results()
         print(results)
