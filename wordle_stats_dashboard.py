@@ -68,6 +68,7 @@ class WordleDashboard:
         chart_data = data[selected_mode].set_index("game_number")
 
         st.line_chart(data=chart_data, y=["guesses", "solved"])
+        st.scatter_chart(data=chart_data, y=["guesses"], color="solved")
 
     def display_sidebar(self):
         menu_options = {
@@ -98,12 +99,20 @@ class WordleDashboard:
         # Create a Streamlit selectbox to choose the game mode
         selected_mode = st.selectbox("Select Game Mode", game_modes)
 
-        data[selected_mode].set_index("game_number")
+        data[selected_mode] = data[selected_mode].set_index("game_number")
         # Display the line graph for the selected game mode
         st.line_chart(data=data[selected_mode], x="game_number", y="guesses")
     
     def show_game_mode_dist(self):
-        st.write("game mode dist")
+        st.subheader("Game Mode Distribution")
+        game_mode_counts = self.raw_data["game_mode"].value_counts() # index = list[game modes] , values = list[counts]
+        
+        modes = game_mode_counts.index.tolist()
+        counts = game_mode_counts.values.tolist()
+
+        chart_data = pd.DataFrame({"Modes": modes, "Counts": counts})
+        chart_data = chart_data.set_index("Modes")
+        st.bar_chart(chart_data)
 
     def show_guess_dist(self):
         st.write("guess dist")
@@ -118,9 +127,6 @@ class WordleDashboard:
         st.title("Wordle Solver Stats Dashboard")
 
         self.display_sidebar()
-
-        
-        
 
         stats_df = self.load_data()
 
