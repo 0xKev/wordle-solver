@@ -3,6 +3,7 @@ from wordle_solver import WordleStats
 
 import streamlit as st
 import pandas as pd
+from datetime import datetime
 
 # daily performance
 
@@ -16,7 +17,7 @@ import pandas as pd
 # streaks and records
 
 
-# also include button that let's user pick which mode to run the bot for
+# also include button that let"s user pick which mode to run the bot for
 # user gets to pick number of runs from 1 to 5
 
 class WordleDashboard:
@@ -32,24 +33,60 @@ class WordleDashboard:
         self.raw_data: pd.DataFrame = self.load_data()
         
 
-
     # look into caching for performance later (potential issue: cache prevents stats from updating)
     # also maybe st.fragment for auto reruns indepdently to load new data
     def load_data(self) -> pd.DataFrame:
         data = pd.read_csv(self.stats_manager.get_file(), sep=";", header=0)
+        data["date"] = pd.to_datetime(data["date"])
         return data
 
     
-    def get_filter(self, game_mode: str) -> pd.DataFrame:
-        return self.raw_data.filter(like=game_mode)
+    def get_filter(self, game_mode: str, date: str = None) -> pd.DataFrame:
+        if date:
+            date = pd.to_datetime(date).date() # .date to remove trailing time
+            match game_mode:
+                case "rand" | "auto" | "manual":
+                    return self.raw_data[(self.raw_data["game_mode"] == game_mode) & (self.raw_data["date"].dt.date == date)] 
+                case "all":
+                    return self.raw_data[self.raw_data["date"].dt.date == date]
+                case _:
+                    raise "Game mode does not exist"
+
+        return self.raw_data[self.raw_data["game_mode"] == game_mode]
     
     def show_daily_stats(self):
-        st.line_chart(data=self.raw_data, x="date", y="guesses")
+        today = datetime.today().strftime("%Y-%m-%d")
+        game_modes: list = self.raw_data["game_mode"].unique()
+
+        data = {}
+
+        for mode in game_modes:
+            data[mode] = self.get_filter(game_mode=mode, date=today)
+            data[mode]["game_number"] = range(1, len(data[mode]) + 1)
+
+        selected_mode = st.selectbox("Select game mode: ", game_modes)
+
+        st.line_chart(data=data[selected_mode], x="game_number", y="guesses")
+
+    def show_all_stats(self):
+        game_modes = self.raw_data["game_mode"].unique()
+
+        # Create a dictionary to store the data for each game mode
+        data = {}
+        for mode in game_modes:
+            data[mode] = self.raw_data[self.raw_data["game_mode"] == mode]
+            data[mode]["game_number"] = range(1, len(data[mode]) + 1)
+
+        # Create a Streamlit selectbox to choose the game mode
+        selected_mode = st.selectbox("Select Game Mode", game_modes)
+
+        data[selected_mode].set_index("game_number")
+        # Display the line graph for the selected game mode
+        st.line_chart(data=data[selected_mode], x="game_number", y="guesses")
 
     
     def run_app(self) -> None:
         st.title("Wordle Solver Stats Dashboard")
-        
 
         with st.sidebar:
             menu_options = st.selectbox(

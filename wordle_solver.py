@@ -525,9 +525,9 @@ class WordleSolver:
 
     
 if __name__ ==  '__main__':
-    game = WordleSolver("auto") # no param sets it to "auto"
+    game = WordleSolver("rand") # no param sets it to "auto"
     stats = WordleStats("stats.csv")
-    for i in range(200):
+    for i in range(100):
         game.startGame()
         results: list = game.get_results()
         print(results)
