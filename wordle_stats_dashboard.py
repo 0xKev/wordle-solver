@@ -28,7 +28,7 @@ class WordleDashboard:
         return data
 
     
-    def get_filter(self, game_mode: str, date: str = None, solved: bool = None) -> pd.DataFrame:
+    def get_filter(self, game_mode: str, date: str = None, solved: bool = None, date_range: tuple[str, str] = None) -> pd.DataFrame:
         filtered_data = self.raw_data.copy()
 
         match game_mode:
@@ -39,7 +39,12 @@ class WordleDashboard:
             case _:
                 raise ValueError("Game mode does not exist")
             
-        if date:
+        if date_range:
+            start_date = pd.to_datetime(date_range[0]).date()
+            end_date = pd.to_datetime(date_range[1]).date()
+            filtered_data = filtered_data[(filtered_data["date"].dt.date >= start_date) & (filtered_data["date"].dt.date <= end_date)]
+            
+        elif date:
             date = pd.to_datetime(date).date() # .date to remove trailing time
             filtered_data = filtered_data[(filtered_data["date"].dt.date == date)]
 
@@ -153,17 +158,31 @@ class WordleDashboard:
     def show_success_rate(self):
         st.subheader("Success Rate")
 
+        mode_success_rates = {}
         game_modes: list = self.raw_data["game_mode"].unique().tolist()
         # displays sr for different modes and time peroids using astair graph
 
         min_date = self.raw_data["date"].dt.date.min()
         max_date = self.raw_data["date"].dt.date.max()
         
-        selected_date = st.date_input("Select end date:", value=max_date, min_value=min_date, max_value=max_date)
-        st.write(selected_date)
+        selected_dates = st.date_input(
+            "Select end date:", 
+            value=(min_date, max_date), 
+            min_value=min_date, 
+            max_value=max_date
+        )
 
+        selected_start_date = selected_dates[0].strftime("%Y-%m-%d")
+        selected_end_date = selected_dates[1].strftime("%Y-%m-%d") if len(selected_dates) == 2 else selected_start_date
+
+        st.write((selected_start_date, selected_end_date))
+        
         selected_mode = st.selectbox("Choose a game mode:", game_modes)
 
+        for mode in game_modes:
+            mode_success_rates[mode] = self.get_filter(game_mode=selected_mode, date_range=(selected_start_date, selected_end_date))
+
+        st.write(mode_success_rates)
         
 
     def show_streaks(self):
@@ -182,7 +201,7 @@ class WordleDashboard:
 
                 st.write(stats_df)
 
-                refresh_stats_btn = st.button("Refresh stats", key="refresh_load_data")
+                refresh_stats_btn = st.button("Refresh stats", key="refresh_load_data"+ str(seconds))
 
                 if refresh_stats_btn:
                     stats_df = self.load_data()
