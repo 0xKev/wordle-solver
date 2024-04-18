@@ -75,7 +75,7 @@ class WordleDashboard:
             .mark_bar()
             .encode(
             alt.X("guesses:N", title="Guesses", axis=alt.Axis(labelAngle=0)), 
-            alt.Y("count:Q", title="Game count"),
+            alt.Y("count:Q", title="Game count", axis=alt.Axis(tickMinStep=1)),
             alt.Color("solved"),
             tooltip=["count", "guesses", "answer"],
             )
@@ -102,6 +102,23 @@ class WordleDashboard:
         )
         
         menu_options[selected_option]()
+    
+    def display_tabs(self) -> None:
+        tab_options = {
+                "Daily": self.show_daily_stats, 
+                "Game Mode Distribution": self.show_game_mode_dist,
+                "Guess Distribution": self.show_guess_dist, 
+                "Success Rate": self.show_success_rate, 
+                "Streaks": self.show_streaks
+        }
+
+        tab_names = list(tab_options.keys())
+
+        tabs: tuple[st.tabs] = st.tabs(tabs=tab_names)
+
+        for tab in tabs:
+            with tab:
+                tab_options[tab]
 
     def show_all_stats(self):
         game_modes = self.raw_data["game_mode"].unique()
@@ -193,7 +210,7 @@ class WordleDashboard:
             .mark_bar()
             .encode(
                 alt.X("game_mode:N", title="Game mode", axis=alt.Axis(labelAngle=0)),
-                alt.Y("success_rate:Q", title="Success Rate", axis=alt.Axis(format='%')) # y axis expectes numeric values
+                alt.Y("success_rate:Q", title="Success Rate", axis=alt.Axis(format='%', tickMinStep=1)) # y axis expectes numeric values
             )
         )
         #st.write(f"{selected_mode} sr: {success_rates[selected_mode]}")
@@ -220,18 +237,9 @@ class WordleDashboard:
         self.display_sidebar()
 
         placeholder = st.empty()
-
-        for seconds in range(500):
-            with placeholder.container():
-                stats_df = self.load_data()
-
-                st.write(stats_df)
-
-                refresh_stats_btn = st.button("Refresh stats", key="refresh_load_data"+ str(seconds))
-
-                if refresh_stats_btn:
-                    stats_df = self.load_data()
-                time.sleep(5)
+        
+        self.display_tabs()
+        
                 
 
 
