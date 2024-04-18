@@ -63,7 +63,7 @@ class WordleDashboard:
         
         selected_mode = st.selectbox("Select game mode: ", game_modes)
 
-        chart_data = data[selected_mode].groupby(["guesses", "solved"]).size().reset_index(name="count") # .size needed to compute # of elem per group else return obj and not actual result
+        chart_data = data[selected_mode].groupby(["guesses", "solved", "answer"]).size().reset_index(name="count") # .size needed to compute # of elem per group else return obj and not actual result
 
         alt_chart = (
             alt.Chart(chart_data)
@@ -72,12 +72,14 @@ class WordleDashboard:
             alt.X("count:N", title="Game count"), 
             alt.Y("guesses:Q", title="Guesses"),
             alt.Color("solved"),
-            tooltip=["count", "guesses"],
+            tooltip=["count", "guesses", "answer"],
             )
             .properties()
         )
 
         st.altair_chart(altair_chart=alt_chart, theme="streamlit", use_container_width=True)
+
+        # ALSO DISPLAY SR
 
     def display_sidebar(self):
         menu_options = {
@@ -127,7 +129,7 @@ class WordleDashboard:
         st.subheader("Total Guess Distribution")
 
         data = {}
-        game_modes: list = self.raw_data["game_mode"].unique().tolist()
+        game_modes: list = self.raw_data["game_mode"].unique().tolist() + ["all"]
 
         for mode in game_modes:
             data[mode] = self.get_filter(game_mode=mode)
@@ -149,7 +151,15 @@ class WordleDashboard:
         st.altair_chart(altair_chart=alt_chart, use_container_width=True)
 
     def show_success_rate(self):
-        st.write("success rate")
+        st.subheader("Success Rate")
+
+        game_modes: list = self.raw_data["game_mode"].unique().tolist()
+        # displays sr for different modes and time peroids using astair graph
+
+        min_date = self.raw_data["date"].dt.date.min()
+        max_date = self.raw_data["date"].dt.date.max()
+        
+        selected_date = st.date_input("Select end date:", value=max_date, min_value=min_date, max_value=max_date)
 
     def show_streaks(self):
         st.write("streaks!")
