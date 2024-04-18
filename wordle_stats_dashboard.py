@@ -178,20 +178,36 @@ class WordleDashboard:
         selected_mode = st.selectbox("Choose a game mode:", game_modes)
 
         for mode in game_modes:
-            filtered_data = self.get_filter(game_mode=selected_mode, date_range=(selected_start_date, selected_end_date))
+            filtered_data = self.get_filter(game_mode=mode, date_range=(selected_start_date, selected_end_date))
             mode_success_rates[mode] = filtered_data
-            
 
-        st.write(mode_success_rates)
-        success_rate = self.calculate_success_rate(mode_success_rates[selected_mode])
-        st.write(success_rate)
+        success_rates = {}
+
+        for mode, data in mode_success_rates.items():
+            success_rates[mode] = self.calculate_success_rate(data)
+
+        success_rate_data = pd.DataFrame(data=success_rates.items(), columns=["game_mode", "success_rate"])
+        st.write("success_rate_data", success_rate_data)
+        alt_chart = (
+            alt.Chart(success_rate_data)
+            .mark_bar()
+            .encode(
+                alt.X("game_mode:N", title="Game mode"),
+                alt.Y("success_rate:Q", title="Success Rate", axis=alt.Axis(format='%')) # y axis expectes numeric values
+            )
+        )
+        st.write(f"{selected_mode} sr: {success_rates[selected_mode]}")
+
+            
+        st.altair_chart(altair_chart=alt_chart, use_container_width=True)
     
-    def calculate_success_rate(self, data_set: pd.DataFrame) -> str:
+    def calculate_success_rate(self, data_set: pd.DataFrame) -> int:
+        # NOT CONVERTING TO 100 BC SHOW_SUCCESS_RATE ALT CHAR Y AXIS EXPECTS NUMERIC VALUE AND AUTO TRANSFORMS TO % 
         success: int = len(data_set[(data_set["solved"] == True)])
         fails: int = len(data_set[(data_set["solved"] == False)])
         total: int = success + fails
 
-        return f"{(success / total) * 100:.2f}%" if success != 0 else f"0%"
+        return round((success / total), 2) if fails != 0 else 1
         
         
 
