@@ -5,7 +5,7 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 from datetime import datetime
-
+import time
 
 class WordleDashboard:
     def __init__(self, wordle_solver: WordleSolver, stats_manager: WordleStats):
@@ -69,8 +69,8 @@ class WordleDashboard:
             alt.Chart(chart_data)
             .mark_bar()
             .encode(
-            alt.X("count:N", title="Game count"), 
-            alt.Y("guesses:Q", title="Guesses"),
+            alt.X("guesses:N", title="Guesses"), 
+            alt.Y("count:Q", title="Game count"),
             alt.Color("solved"),
             tooltip=["count", "guesses", "answer"],
             )
@@ -142,8 +142,8 @@ class WordleDashboard:
             alt.Chart(chart_data)
             .mark_bar()
             .encode(
-                alt.X("count:N", title="Game Count"),
-                alt.Y("guesses:Q", title="Guesses"),
+                alt.X("guesses:N", title="Guesses"), 
+                alt.Y("count:Q", title="Game count"),
                 alt.Color("solved")
             )
         )
@@ -160,6 +160,11 @@ class WordleDashboard:
         max_date = self.raw_data["date"].dt.date.max()
         
         selected_date = st.date_input("Select end date:", value=max_date, min_value=min_date, max_value=max_date)
+        st.write(selected_date)
+
+        selected_mode = st.selectbox("Choose a game mode:", game_modes)
+
+        
 
     def show_streaks(self):
         st.write("streaks!")
@@ -169,14 +174,21 @@ class WordleDashboard:
 
         self.display_sidebar()
 
-        stats_df = self.load_data()
+        placeholder = st.empty()
 
-        st.write(stats_df)
+        for seconds in range(500):
+            with placeholder.container():
+                stats_df = self.load_data()
 
-        refresh_stats_btn = st.button("Refresh stats", key="load_data")
+                st.write(stats_df)
 
-        if refresh_stats_btn:
-            stats_df = self.load_data()
+                refresh_stats_btn = st.button("Refresh stats", key="refresh_load_data")
+
+                if refresh_stats_btn:
+                    stats_df = self.load_data()
+                time.sleep(5)
+                
+
 
 if __name__ == "__main__":
     game = WordleSolver("rand") # no param sets it to "auto"
