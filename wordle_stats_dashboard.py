@@ -124,7 +124,29 @@ class WordleDashboard:
         st.bar_chart(chart_data)
 
     def show_guess_dist(self):
-        st.write("guess dist")
+        st.subheader("Total Guess Distribution")
+
+        data = {}
+        game_modes: list = self.raw_data["game_mode"].unique().tolist()
+
+        for mode in game_modes:
+            data[mode] = self.get_filter(game_mode=mode)
+        
+        selected_mode = st.selectbox("Select game mode:", game_modes)
+
+        chart_data = data[selected_mode].groupby(["guesses", "solved"]).size().reset_index(name="count")
+
+        alt_chart = (
+            alt.Chart(chart_data)
+            .mark_bar()
+            .encode(
+                alt.X("count:N", title="Game Count"),
+                alt.Y("guesses:Q", title="Guesses"),
+                alt.Color("solved")
+            )
+        )
+
+        st.altair_chart(altair_chart=alt_chart, use_container_width=True)
 
     def show_success_rate(self):
         st.write("success rate")
