@@ -74,7 +74,7 @@ class WordleDashboard:
             alt.Chart(chart_data)
             .mark_bar()
             .encode(
-            alt.X("guesses:N", title="Guesses"), 
+            alt.X("guesses:N", title="Guesses", axis=alt.Axis(labelAngle=0)), 
             alt.Y("count:Q", title="Game count"),
             alt.Color("solved"),
             tooltip=["count", "guesses", "answer"],
@@ -147,7 +147,7 @@ class WordleDashboard:
             alt.Chart(chart_data)
             .mark_bar()
             .encode(
-                alt.X("guesses:N", title="Guesses"), 
+                alt.X("guesses:N", title="Guesses", axis=alt.Axis(labelAngle=0)), 
                 alt.Y("count:Q", title="Game count"),
                 alt.Color("solved")
             )
@@ -175,7 +175,7 @@ class WordleDashboard:
         selected_start_date = selected_dates[0].strftime("%Y-%m-%d")
         selected_end_date = selected_dates[1].strftime("%Y-%m-%d") if len(selected_dates) == 2 else selected_start_date
         
-        selected_mode = st.selectbox("Choose a game mode:", game_modes)
+        #selected_mode = st.selectbox("Choose a game mode:", game_modes)
 
         for mode in game_modes:
             filtered_data = self.get_filter(game_mode=mode, date_range=(selected_start_date, selected_end_date))
@@ -192,11 +192,11 @@ class WordleDashboard:
             alt.Chart(success_rate_data)
             .mark_bar()
             .encode(
-                alt.X("game_mode:N", title="Game mode"),
+                alt.X("game_mode:N", title="Game mode", axis=alt.Axis(labelAngle=0)),
                 alt.Y("success_rate:Q", title="Success Rate", axis=alt.Axis(format='%')) # y axis expectes numeric values
             )
         )
-        st.write(f"{selected_mode} sr: {success_rates[selected_mode]}")
+        #st.write(f"{selected_mode} sr: {success_rates[selected_mode]}")
 
             
         st.altair_chart(altair_chart=alt_chart, use_container_width=True)
