@@ -37,7 +37,7 @@ class WordleDashboard:
             case "all":
                 pass
             case _:
-                raise "Game mode does not exist"
+                raise ValueError("Game mode does not exist")
             
         if date:
             date = pd.to_datetime(date).date() # .date to remove trailing time
@@ -52,26 +52,26 @@ class WordleDashboard:
         today = datetime.today().strftime("%Y-%m-%d")
         game_modes: list = self.raw_data["game_mode"].unique().tolist() + ["all"]
 
+        solved_data = {}
+        unsolved_data = {}
         data = {}
 
         for mode in game_modes:
             data[mode] = self.get_filter(game_mode=mode, date=today)
+            solved_data[mode] = self.get_filter(game_mode=mode, date=today, solved=True)
+            unsolved_data[mode] = self.get_filter(game_mode=mode, date=today, solved=False)
         
         selected_mode = st.selectbox("Select game mode: ", game_modes)
 
-        chart_data = data[selected_mode]
+        chart_data = data[selected_mode].groupby(["guesses", "solved"]).size().reset_index(name="count") # .size needed to compute # of elem per group else return obj and not actual result
 
-        guess_counts = data[selected_mode]["guesses"].value_counts().reset_index()
-        st.write("guess counts:", guess_counts)
-
-        alt_chart_data = pd.DataFrame(chart_data).reset_index()
         alt_chart = (
-            alt.Chart(guess_counts)
+            alt.Chart(chart_data)
             .mark_bar()
             .encode(
             alt.X("count:N", title="Game count"), 
             alt.Y("guesses:Q", title="Guesses"),
-            color="solved",
+            alt.Color("solved"),
             tooltip=["count", "guesses"],
             )
             .properties()
