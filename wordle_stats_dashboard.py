@@ -174,15 +174,25 @@ class WordleDashboard:
 
         selected_start_date = selected_dates[0].strftime("%Y-%m-%d")
         selected_end_date = selected_dates[1].strftime("%Y-%m-%d") if len(selected_dates) == 2 else selected_start_date
-
-        st.write((selected_start_date, selected_end_date))
         
         selected_mode = st.selectbox("Choose a game mode:", game_modes)
 
         for mode in game_modes:
-            mode_success_rates[mode] = self.get_filter(game_mode=selected_mode, date_range=(selected_start_date, selected_end_date))
+            filtered_data = self.get_filter(game_mode=selected_mode, date_range=(selected_start_date, selected_end_date))
+            mode_success_rates[mode] = filtered_data
+            
 
         st.write(mode_success_rates)
+        success_rate = self.calculate_success_rate(mode_success_rates[selected_mode])
+        st.write(success_rate)
+    
+    def calculate_success_rate(self, data_set: pd.DataFrame) -> str:
+        success: int = len(data_set[(data_set["solved"] == True)])
+        fails: int = len(data_set[(data_set["solved"] == False)])
+        total: int = success + fails
+
+        return f"{(success / total) * 100:.2f}%" if success != 0 else f"0%"
+        
         
 
     def show_streaks(self):
