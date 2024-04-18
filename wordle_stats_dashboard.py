@@ -145,8 +145,19 @@ class WordleDashboard:
         counts = game_mode_counts.values.tolist()
 
         chart_data = pd.DataFrame({"Modes": modes, "Counts": counts})
-        chart_data = chart_data.set_index("Modes")
         st.bar_chart(chart_data)
+
+        alt_chart = (
+            alt.Chart(chart_data)
+            .mark_bar()
+            .encode(
+                alt.X("Modes:N", title="Game Modes", axis=alt.Axis(labelAngle=0)),
+                alt.Y("Counts:Q", title="Total Guesses", axis=alt.Axis(tickMinStep=1))
+            
+            )
+        )
+
+        st.altair_chart(altair_chart=alt_chart, use_container_width=True)
 
     def show_guess_dist(self):
         st.subheader("Total Guess Distribution")
@@ -234,12 +245,13 @@ class WordleDashboard:
     
     def run_app(self) -> None:
         st.title("Wordle Solver Stats Dashboard")
+        self.display_tabs()
 
-        self.display_sidebar()
+        #self.display_sidebar()
 
         placeholder = st.empty()
         
-        self.display_tabs()
+        
         
                 
 
