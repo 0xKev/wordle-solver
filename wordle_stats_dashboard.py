@@ -17,16 +17,25 @@ class WordleDashboard:
 
         self.wordle_solver = wordle_solver
         self.stats_manager = stats_manager
-        self.raw_data: pd.DataFrame = self.load_data()
+        self.min_date = ""
+        self.max_date = ""
+        self.raw_data = ""
         
+        self.load_data()
 
     # look into caching for performance later (potential issue: cache prevents stats from updating)
     # also maybe st.fragment for auto reruns indepdently to load new data
-    def load_data(self) -> pd.DataFrame:
+    def load_data(self) -> None:
         data = pd.read_csv(self.stats_manager.get_file(), sep=";", header=0)
         data["date"] = pd.to_datetime(data["date"])
-        return data
 
+        self.raw_data = data
+        self.update_minMax_date()
+        
+
+    def update_minMax_date(self) -> None:
+        self.min_date = self.raw_data["date"].dt.date.min()
+        self.max_date = self.raw_data["date"].dt.date.max()
     
     def get_filter(self, game_mode: str, date: str = None, solved: bool = None, date_range: tuple[str, str] = None) -> pd.DataFrame:
         filtered_data = self.raw_data.copy()
@@ -145,7 +154,7 @@ class WordleDashboard:
         counts = game_mode_counts.values.tolist()
 
         chart_data = pd.DataFrame({"Modes": modes, "Counts": counts})
-        st.bar_chart(chart_data)
+        st.write(chart_data)
 
         alt_chart = (
             alt.Chart(chart_data)
@@ -190,15 +199,12 @@ class WordleDashboard:
         mode_success_rates = {}
         game_modes: list = self.raw_data["game_mode"].unique().tolist()
         # displays sr for different modes and time peroids using astair graph
-
-        min_date = self.raw_data["date"].dt.date.min()
-        max_date = self.raw_data["date"].dt.date.max()
         
         selected_dates = st.date_input(
             "Select end date:", 
-            value=(min_date, max_date), 
-            min_value=min_date, 
-            max_value=max_date
+            value=(self.min_date, self.max_date), 
+            min_value=self.min_date, 
+            max_value=self.max_date
         )
 
         selected_start_date = selected_dates[0].strftime("%Y-%m-%d")
