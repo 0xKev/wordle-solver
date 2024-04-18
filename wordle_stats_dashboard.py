@@ -66,7 +66,7 @@ class WordleDashboard:
             solved_data[mode] = self.get_filter(game_mode=mode, date=today, solved=True)
             unsolved_data[mode] = self.get_filter(game_mode=mode, date=today, solved=False)
         
-        selected_mode = st.selectbox("Select game mode: ", game_modes)
+        selected_mode = st.selectbox("Select game mode: ", game_modes, key="show_daily_stats()")
 
         chart_data = data[selected_mode].groupby(["guesses", "solved", "answer"]).size().reset_index(name="count") # .size needed to compute # of elem per group else return obj and not actual result
 
@@ -98,7 +98,8 @@ class WordleDashboard:
         with st.sidebar:
             selected_option = st.selectbox(
             "View stats", 
-            list(menu_options.keys())
+            list(menu_options.keys()),
+            key="display_sidebar()"
         )
         
         menu_options[selected_option]()
@@ -116,9 +117,9 @@ class WordleDashboard:
 
         tabs: tuple[st.tabs] = st.tabs(tabs=tab_names)
 
-        for tab in tabs:
+        for idx, tab in enumerate(tabs):
             with tab:
-                tab_options[tab]
+                tab_options[tab_names[idx]]()
 
     def show_all_stats(self):
         game_modes = self.raw_data["game_mode"].unique()
@@ -130,7 +131,7 @@ class WordleDashboard:
             data[mode]["game_number"] = range(1, len(data[mode]) + 1)
 
         # Create a Streamlit selectbox to choose the game mode
-        selected_mode = st.selectbox("Select Game Mode", game_modes)
+        selected_mode = st.selectbox("Select Game Mode", game_modes, key="show_all_stats()")
 
         data[selected_mode] = data[selected_mode].set_index("game_number")
         # Display the line graph for the selected game mode
@@ -156,7 +157,7 @@ class WordleDashboard:
         for mode in game_modes:
             data[mode] = self.get_filter(game_mode=mode)
         
-        selected_mode = st.selectbox("Select game mode:", game_modes)
+        selected_mode = st.selectbox("Select game mode:", game_modes, key="show_guess_dist()")
 
         chart_data = data[selected_mode].groupby(["guesses", "solved"]).size().reset_index(name="count")
 
