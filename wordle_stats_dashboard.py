@@ -3,22 +3,9 @@ from wordle_solver import WordleStats
 
 import streamlit as st
 import pandas as pd
+import altair as alt
 from datetime import datetime
 
-# daily performance
-
-
-# game mode distribution (pie chart of # of games played for each mode)
-
-# guess distrubtion (chrat to view the number of gusses it takes for solver)
-
-# success rate (total per game mode)
-
-# streaks and records
-
-
-# also include button that let"s user pick which mode to run the bot for
-# user gets to pick number of runs from 1 to 5
 
 class WordleDashboard:
     def __init__(self, wordle_solver: WordleSolver, stats_manager: WordleStats):
@@ -41,18 +28,25 @@ class WordleDashboard:
         return data
 
     
-    def get_filter(self, game_mode: str, date: str = None) -> pd.DataFrame:
+    def get_filter(self, game_mode: str, date: str = None, solved: bool = None) -> pd.DataFrame:
+        filtered_data = self.raw_data.copy()
+
+        match game_mode:
+            case "rand" | "auto" | "manual":
+                filtered_data = filtered_data[(filtered_data["game_mode"] == game_mode)] 
+            case "all":
+                pass
+            case _:
+                raise "Game mode does not exist"
+            
         if date:
             date = pd.to_datetime(date).date() # .date to remove trailing time
-            match game_mode:
-                case "rand" | "auto" | "manual":
-                    return self.raw_data[(self.raw_data["game_mode"] == game_mode) & (self.raw_data["date"].dt.date == date)] 
-                case "all":
-                    return self.raw_data[self.raw_data["date"].dt.date == date]
-                case _:
-                    raise "Game mode does not exist"
+            filtered_data = filtered_data[(filtered_data["date"].dt.date == date)]
 
-        return self.raw_data[self.raw_data["game_mode"] == game_mode]
+        if solved is not None:
+            filtered_data = filtered_data[(filtered_data["solved"] == solved)]
+
+        return filtered_data
     
     def show_daily_stats(self):
         today = datetime.today().strftime("%Y-%m-%d")
@@ -62,13 +56,28 @@ class WordleDashboard:
 
         for mode in game_modes:
             data[mode] = self.get_filter(game_mode=mode, date=today)
-            data[mode]["game_number"] = range(1, len(data[mode]) + 1)
-
+        
         selected_mode = st.selectbox("Select game mode: ", game_modes)
-        chart_data = data[selected_mode].set_index("game_number")
 
-        st.line_chart(data=chart_data, y=["guesses", "solved"])
-        st.scatter_chart(data=chart_data, y=["guesses"], color="solved")
+        chart_data = data[selected_mode]
+
+        guess_counts = data[selected_mode]["guesses"].value_counts().reset_index()
+        st.write("guess counts:", guess_counts)
+
+        alt_chart_data = pd.DataFrame(chart_data).reset_index()
+        alt_chart = (
+            alt.Chart(guess_counts)
+            .mark_bar()
+            .encode(
+            alt.X("count:N", title="Game count"), 
+            alt.Y("guesses:Q", title="Guesses"),
+            color="solved",
+            tooltip=["count", "guesses"],
+            )
+            .properties()
+        )
+
+        st.altair_chart(altair_chart=alt_chart, theme="streamlit", use_container_width=True)
 
     def display_sidebar(self):
         menu_options = {
@@ -93,7 +102,7 @@ class WordleDashboard:
         # Create a dictionary to store the data for each game mode
         data = {}
         for mode in game_modes:
-            data[mode] = self.raw_data[self.raw_data["game_mode"] == mode]
+            data[mode] = self.get_filter(game_mode=mode)
             data[mode]["game_number"] = range(1, len(data[mode]) + 1)
 
         # Create a Streamlit selectbox to choose the game mode
@@ -101,7 +110,7 @@ class WordleDashboard:
 
         data[selected_mode] = data[selected_mode].set_index("game_number")
         # Display the line graph for the selected game mode
-        st.line_chart(data=data[selected_mode], x="game_number", y="guesses")
+        st.line_chart(data=data[selected_mode], y="guesses")
     
     def show_game_mode_dist(self):
         st.subheader("Game Mode Distribution")
