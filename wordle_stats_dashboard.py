@@ -152,9 +152,9 @@ class WordleDashboard:
         
         modes = game_mode_counts.index.tolist()
         counts = game_mode_counts.values.tolist()
+        success_rates = [self.calculate_success_rate]
 
         chart_data = pd.DataFrame({"Modes": modes, "Counts": counts})
-        st.write(chart_data)
 
         alt_chart = (
             alt.Chart(chart_data)
@@ -222,7 +222,6 @@ class WordleDashboard:
             success_rates[mode] = self.calculate_success_rate(data)
 
         success_rate_data = pd.DataFrame(data=success_rates.items(), columns=["game_mode", "success_rate"])
-        st.write("success_rate_data", success_rate_data)
         alt_chart = (
             alt.Chart(success_rate_data)
             .mark_bar()
@@ -247,8 +246,25 @@ class WordleDashboard:
         
 
     def show_streaks(self):
-        st.write("streaks!")
-    
+        st.subheader("Streaks!")
+        longest_streak = 0
+        
+        filtered_data = self.raw_data[self.raw_data["solved"]] # able to use boolean indexing bc "solved" values are True or False
+        data = self.raw_data
+        # .transform works on each group and "idxmax" returns the first index of the maximum value (True).
+        # so each group of solved dates is assigned the idx of the first True in each group and finally compared to the original idx
+        # if match with original idx then condition True, row is the first win for each date group
+        daily_first_win = filtered_data.groupby(filtered_data["date"].dt.date)["solved"].transform("idxmax") == filtered_data.index
+        data["daily_first_win"] = daily_first_win.reindex(data.index).fillna(False) # to fill in N/A with False for fail answers
+        data["daily_first_win"] = data["daily_first_win"].infer_objects(copy=False) # fillna deprecated and will change in the future
+
+        st.write(data)
+
+        filtered_daily_wins = data[data["daily_first_win"]]
+        st.write(filtered_daily_wins)
+
+        
+
     def run_app(self) -> None:
         st.title("Wordle Solver Stats Dashboard")
         self.display_tabs()
