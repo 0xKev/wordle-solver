@@ -75,7 +75,7 @@ class WordleDashboard:
             solved_data[mode] = self.get_filter(game_mode=mode, date=today, solved=True)
             unsolved_data[mode] = self.get_filter(game_mode=mode, date=today, solved=False)
         
-        selected_mode = st.selectbox("Select game mode: ", game_modes, key="show_daily_stats()")
+        selected_mode = st.selectbox("Select game mode: ", game_modes, key=f"show_daily_stats__{int(time.time())}")
 
         chart_data = data[selected_mode].groupby(["guesses", "solved", "answer"]).size().reset_index(name="count") # .size needed to compute # of elem per group else return obj and not actual result
 
@@ -140,7 +140,7 @@ class WordleDashboard:
             data[mode]["game_number"] = range(1, len(data[mode]) + 1)
 
         # Create a Streamlit selectbox to choose the game mode
-        selected_mode = st.selectbox("Select Game Mode", game_modes, key="show_all_stats()")
+        selected_mode = st.selectbox("Select Game Mode", game_modes, key=f"show_all_stats_{int(time.time())}")
 
         data[selected_mode] = data[selected_mode].set_index("game_number")
         # Display the line graph for the selected game mode
@@ -177,7 +177,7 @@ class WordleDashboard:
         for mode in game_modes:
             data[mode] = self.get_filter(game_mode=mode)
         
-        selected_mode = st.selectbox("Select game mode:", game_modes, key="show_guess_dist()")
+        selected_mode = st.selectbox("Select game mode:", game_modes, key=f"show_guess_dist_{int(time.time())}")
 
         chart_data = data[selected_mode].groupby(["guesses", "solved"]).size().reset_index(name="count")
 
@@ -204,7 +204,8 @@ class WordleDashboard:
             "Select end date:", 
             value=(self.min_date, self.max_date), 
             min_value=self.min_date, 
-            max_value=self.max_date
+            max_value=self.max_date,
+            key=f"sr_date_selector_{int(time.time())}"
         )
 
         selected_start_date = selected_dates[0].strftime("%Y-%m-%d")
@@ -276,23 +277,27 @@ class WordleDashboard:
 
         
 
+def run_app() -> None:
+    game = WordleSolver("rand") # no param sets it to "auto"
+    stats = WordleStats("stats.csv")
+    dashboard = WordleDashboard(game, stats)
 
+    st.title("Wordle Solver Stats Dashboard")
+    
+    placeholder = st.empty()
 
-    def run_app(self) -> None:
-        st.title("Wordle Solver Stats Dashboard")
-        self.display_tabs()
+    while True:
+        dashboard.load_data()
+        with placeholder.container():
+            dashboard.display_tabs()  
+        time.sleep(2) 
 
-        #self.display_sidebar()
+    
 
-        placeholder = st.empty()
-        
         
         
                 
 
 
 if __name__ == "__main__":
-    game = WordleSolver("rand") # no param sets it to "auto"
-    stats = WordleStats("stats.csv")
-    dashboard = WordleDashboard(game, stats)
-    dashboard.run_app()
+    run_app()
