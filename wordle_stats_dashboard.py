@@ -186,7 +186,7 @@ class WordleDashboard:
             .mark_bar()
             .encode(
                 alt.X("guesses:N", title="Guesses", axis=alt.Axis(labelAngle=0)), 
-                alt.Y("count:Q", title="Game count"),
+                alt.Y("count:Q", title="Game count", axis=alt.Axis(tickMinStep=1)),
                 alt.Color("solved")
             )
         )
@@ -258,12 +258,25 @@ class WordleDashboard:
         data["daily_first_win"] = daily_first_win.reindex(data.index).fillna(False) # to fill in N/A with False for fail answers
         data["daily_first_win"] = data["daily_first_win"].infer_objects(copy=False) # fillna deprecated and will change in the future
 
-        st.write(data)
-
         filtered_daily_wins = data[data["daily_first_win"]]
-        st.write(filtered_daily_wins)
+
+        # create column showing # of days diff
+        filtered_daily_wins["diff"] = filtered_daily_wins["date"].diff().dt.days
+
+        # create column to mark the days where diff == 1
+        filtered_daily_wins["consecutive"] = filtered_daily_wins["diff"] == 1
+
+        filtered_daily_wins["streak_count"] = filtered_daily_wins["consecutive"].cumsum()
+
+        streak_count = filtered_daily_wins.groupby("date")["diff"].size()
+
+        consecutive_days = filtered_daily_wins.groupby("streak_count").size().max()
+
+        st.write(consecutive_days + 1)
 
         
+
+
 
     def run_app(self) -> None:
         st.title("Wordle Solver Stats Dashboard")
