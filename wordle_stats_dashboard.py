@@ -20,6 +20,9 @@ class WordleDashboard:
         self.min_date = ""
         self.max_date = ""
         self.raw_data = ""
+        st.session_state.queued_game = False
+        st.session_state.game_freq = 1
+        st.session_state.active_game = False
         
         self.load_data()
 
@@ -119,7 +122,7 @@ class WordleDashboard:
                 "Game Mode Distribution": self.show_game_mode_dist,
                 "Guess Distribution": self.show_guess_dist, 
                 "Success Rate": self.show_success_rate, 
-                "Streaks": self.show_streaks
+                "Streaks": self.show_streaks,
         }
 
         tab_names = list(tab_options.keys())
@@ -275,7 +278,34 @@ class WordleDashboard:
 
         st.write(consecutive_days + 1)
 
-        
+    def schedule_game(self) -> None:
+        with st.expander("Schedule game:"):
+            freq = st.slider(
+                label="Select :blue[duration] in between games:sunglasses:",
+                value=1,
+                min_value=1,
+                max_value=24,
+                key=f"game_schedule_{int(time.time())}",
+                step=1,
+                on_change=self.run_games,
+            )
+            st.session_state.queued_game = True
+            st.session_state.game_freq = freq
+
+    def run_games(self, num_games: int = 1) -> None:
+        if not st.session_state.active_game and st.session_state.queued_game:
+            for _ in range(num_games):
+                self.session_active_game = True
+                self.wordle_solver.startGame()
+                results = self.wordle_solver.get_results()
+                self.stats_manager.save_stats_csv(*results)
+
+            st.session_state.game_freq = False
+            st.session_state.queued_game = False
+
+
+        # sessino state saves freq and if game active
+        # schedule based off freq and only play if session state not active
 
 def run_app() -> None:
     game = WordleSolver("rand") # no param sets it to "auto"
@@ -283,6 +313,7 @@ def run_app() -> None:
     dashboard = WordleDashboard(game, stats)
 
     st.title("Wordle Solver Stats Dashboard")
+    dashboard.schedule_game()   
     
     placeholder = st.empty()
 
