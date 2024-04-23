@@ -287,25 +287,44 @@ class WordleDashboard:
                 max_value=24,
                 key=f"game_schedule_{int(time.time())}",
                 step=1,
-                on_change=self.run_games,
+                on_change=self.schedule_slider_moved,
+                disabled=st.session_state.get("slider_moved", False) or st.session_state.active_game
             )
-            st.session_state.queued_game = True
-            st.session_state.game_freq = freq
+        
+        st.session_state.queued_game = True
+        st.session_state.game_freq = freq
+
+    def schedule_slider_moved(self) -> None:
+        st.session_state.slider_moved = True
+        self.check_session_game()
+
+    def check_session_game(self):
+        if st.session_state.queued_game and not st.session_state.active_game:
+            self.run_games()
+
 
     def run_games(self, num_games: int = 1) -> None:
-        if not st.session_state.active_game and st.session_state.queued_game:
+        try:
             for _ in range(num_games):
-                self.session_active_game = True
+                st.session_state.active_game = True
                 self.wordle_solver.startGame()
                 results = self.wordle_solver.get_results()
                 self.stats_manager.save_stats_csv(*results)
-
+                st.success("Game completed and stats saved!")
+        except:
+            st.warning("Wordle solver crashed")
+            st.rerun()
+        finally:
             st.session_state.game_freq = False
             st.session_state.queued_game = False
+    
+    def reset_game_session(self):
+        if st.button("Click to reset game sessions to False"):
+            st.session_state.queued_game = False
+            st.session_state.active_game = False
 
-
-        # sessino state saves freq and if game active
-        # schedule based off freq and only play if session state not active
+    # sessino state saves freq and if game active
+    # schedule based off freq and only play if session state not active
 
 def run_app() -> None:
     game = WordleSolver("rand") # no param sets it to "auto"
@@ -313,8 +332,8 @@ def run_app() -> None:
     dashboard = WordleDashboard(game, stats)
 
     st.title("Wordle Solver Stats Dashboard")
+    dashboard.reset_game_session()
     dashboard.schedule_game()   
-    
     placeholder = st.empty()
 
     while True:
