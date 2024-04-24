@@ -24,6 +24,7 @@ class WordleDashboard:
         st.session_state.queued_game = False
         st.session_state.game_freq = 1
         st.session_state.active_game = False
+        self.scheduled_time = None
         
         self.load_data()
 
@@ -99,25 +100,33 @@ class WordleDashboard:
 
         # ALSO DISPLAY SR
 
-    def display_sidebar(self):
+    def display_sidebar(self, static: bool):
         menu_options = {
                 "Daily": self.show_daily_stats, 
                 "Game Mode Distribution": self.show_game_mode_dist,
                 "Guess Distribution": self.show_guess_dist, 
                 "Success Rate": self.show_success_rate, 
-                "Streaks": self.show_streaks
+                "Streaks": self.show_streaks,
         }
+
+        static_menu_options = {
+            "Settings": self.game_settings
+        }
+
+        menu_selection = static_menu_options if static == True else menu_options
 
         with st.sidebar:
             selected_option = st.selectbox(
             "View stats", 
-            list(menu_options.keys()),
+            list(menu_selection.keys()),
             key="display_sidebar()"
         )
         
-        menu_options[selected_option]()
+        menu_selection[selected_option]()
+
+
     
-    def display_tabs(self) -> None:
+    def display_tabs_refreshed(self) -> None:
         tab_options = {
                 "Daily": self.show_daily_stats, 
                 "Game Mode Distribution": self.show_game_mode_dist,
@@ -133,6 +142,14 @@ class WordleDashboard:
         for idx, tab in enumerate(tabs):
             with tab:
                 tab_options[tab_names[idx]]()
+    
+    def display_sidebar_non_refreshed(self) -> None:
+        menu_options = {
+            "Settings": self.game_settings
+        }
+
+        with st.sidebar:
+            selected_option = {}
 
     def show_all_stats(self):
         game_modes = self.raw_data["game_mode"].unique()
@@ -279,7 +296,8 @@ class WordleDashboard:
 
         st.write(consecutive_days + 1)
 
-    def schedule_game(self) -> None:
+
+    def game_settings(self) -> None:
         with st.expander("Schedule game:"):
             freq = st.number_input(
                 label="Select :blue[duration] in between games:sunglasses:",
@@ -295,18 +313,27 @@ class WordleDashboard:
             st.session_state.queued_game = True
             st.session_state.game_freq = freq
 
-        with st.form("game_schedule_form"):
+        with st.form(key=f"game_schedule_form_{int(time.time())}"):
             st.write("Schedule game:")
-            current_scheduled_time = time_class(hour=20) if not st.session_state.get("schedule_time", False) else time_class(hour=20)
-            time_val = st.time_input("Set time for automatic Wordle games", value=time_class(hour=20))
-            st.session_state.schedule_time = time_val
+            current_scheduled_time = time_class(hour=20) if not self.scheduled_time else self.scheduled_time
+            time_val = st.time_input("Set time for automatic Wordle games", value=current_scheduled_time)
+
+            self.scheduled_time = time_val
 
             submitted = st.form_submit_button("Set time")
-            if submitted:
+        if submitted:
+            st.write(f"time val is {time_val}\nsession state schedule time is {self.scheduled_time}")
 
+        play_enabled = st.toggle("Activate manual play", key=f"play_enabled_{int(time.time())}")
+        if play_enabled:
+            st.session_state.play_enabled = True
 
-        
-        
+        with st.form(key=f"game_settings_{int(time.time())}"):
+            game_mode = st.radio(
+                "Select game mode",
+                ["Random", "Auto"]
+            )
+                
 
     def schedule_slider_moved(self) -> None:
         st.session_state.slider_moved = True
@@ -347,15 +374,15 @@ def run_app() -> None:
 
     st.title("Wordle Solver Stats Dashboard")
     dashboard.reset_game_session()
-    dashboard.schedule_game()   
     placeholder = st.empty()
 
     while True:
         dashboard.load_data()
         with placeholder.container():
-            dashboard.display_tabs()  
-        time.sleep(2) 
+            dashboard.display_tabs_refreshed()
+        time.sleep(2)
 
+      
     
 
         
