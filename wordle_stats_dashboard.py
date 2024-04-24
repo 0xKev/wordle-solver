@@ -3,9 +3,10 @@ from wordle_solver import WordleStats
 
 import streamlit as st
 import pandas as pd
+import time
 import altair as alt
 from datetime import datetime
-import time
+from datetime import time as time_class
 
 class WordleDashboard:
     def __init__(self, wordle_solver: WordleSolver, stats_manager: WordleStats):
@@ -280,7 +281,7 @@ class WordleDashboard:
 
     def schedule_game(self) -> None:
         with st.expander("Schedule game:"):
-            freq = st.slider(
+            freq = st.number_input(
                 label="Select :blue[duration] in between games:sunglasses:",
                 value=1,
                 min_value=1,
@@ -290,9 +291,22 @@ class WordleDashboard:
                 on_change=self.schedule_slider_moved,
                 disabled=st.session_state.get("slider_moved", False) or st.session_state.active_game
             )
+
+            st.session_state.queued_game = True
+            st.session_state.game_freq = freq
+
+        with st.form("game_schedule_form"):
+            st.write("Schedule game:")
+            current_scheduled_time = time_class(hour=20) if not st.session_state.get("schedule_time", False) else time_class(hour=20)
+            time_val = st.time_input("Set time for automatic Wordle games", value=time_class(hour=20))
+            st.session_state.schedule_time = time_val
+
+            submitted = st.form_submit_button("Set time")
+            if submitted:
+
+
         
-        st.session_state.queued_game = True
-        st.session_state.game_freq = freq
+        
 
     def schedule_slider_moved(self) -> None:
         st.session_state.slider_moved = True
@@ -300,7 +314,7 @@ class WordleDashboard:
 
     def check_session_game(self):
         if st.session_state.queued_game and not st.session_state.active_game:
-            self.run_games()
+            self.run_games(st.session_state.game_freq)
 
 
     def run_games(self, num_games: int = 1) -> None:
@@ -319,7 +333,7 @@ class WordleDashboard:
             st.session_state.queued_game = False
     
     def reset_game_session(self):
-        if st.button("Click to reset game sessions to False"):
+        if st.button("Click to reset game sessions to False", disabled=False):
             st.session_state.queued_game = False
             st.session_state.active_game = False
 
