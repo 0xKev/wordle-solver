@@ -13,7 +13,7 @@ from datetime import datetime
 from stats_manager import WordleStats
 
 class WordleSolver:
-    def __init__(self, mode: str = "auto"):
+    def __init__(self):
         self.incorrect_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
         self.correct_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
         self.wrong_position_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
@@ -25,7 +25,7 @@ class WordleSolver:
         self.word_list: list = self.get_words_list()
         self.attempts = 0
         self.__max_attempts = 6
-        self.game_mode = mode
+        self.game_mode = ""
         self.__answer = ""
         self.__solved: bool = ""
 
@@ -389,7 +389,7 @@ class WordleSolver:
             return True
         return False
         
-    def startGame(self) -> None:
+    def startGame(self, mode: str = "auto") -> None:
         """
         Start the Wordle game.
 
@@ -397,7 +397,8 @@ class WordleSolver:
         True if game solved, else False
         """
         # Set the logging level to supress error messages
-        self.resetGame()     # Resets to play same instance again    
+        self.resetGame()     # Resets to play same instance again
+        self.game_mode = mode    
 
         logging.getLogger('selenium').setLevel(logging.CRITICAL)
 
@@ -525,10 +526,10 @@ class WordleSolver:
 
     
 if __name__ ==  '__main__':
-    game = WordleSolver("rand") # no param sets it to "auto"
+    game = WordleSolver() # no param sets it to "auto"
     stats = WordleStats("stats.csv")
     for i in range(100):
-        game.startGame()
+        game.startGame("rand")
         results: list = game.get_results()
         print(results)
         stats.save_stats_csv(*results)

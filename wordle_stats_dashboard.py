@@ -133,6 +133,7 @@ class WordleDashboard:
                 "Guess Distribution": self.show_guess_dist, 
                 "Success Rate": self.show_success_rate, 
                 "Streaks": self.show_streaks,
+                "Settings": self.game_settings,
         }
 
         tab_names = list(tab_options.keys())
@@ -330,17 +331,15 @@ class WordleDashboard:
                 submitted = st.form_submit_button("Set time")
                 if submitted:
                     st.write(f"time val is {time_val}\nsession state schedule time is {self.scheduled_time}")
-
-            
-        manual_toggle = st.toggle(
+            manual_toggle = st.toggle(
             "Activate manual play", 
             key=f"manual_toggle",
             value=st.session_state.play_enabled,
-        )
-        st.session_state.play_enabled = manual_toggle
+            )
+            st.session_state.play_enabled = manual_toggle
         
         with manual_col:
-            with st.form(key=f"game_settings_{int(time.time())}"):
+            with st.form(key=f"manual_game_settings_{int(time.time())}"):
 
                 game_mode = st.radio(
                     "Select game mode",
@@ -352,6 +351,9 @@ class WordleDashboard:
 
                 submitted = st.form_submit_button("Play game", disabled=not st.session_state.play_enabled)
                 
+                if submitted:
+                    self.run_games(game_mode=game_mode.lower())
+                
 
     def schedule_slider_moved(self) -> None:
         st.session_state.slider_moved = True
@@ -362,14 +364,19 @@ class WordleDashboard:
             self.run_games(st.session_state.game_freq)
 
 
-    def run_games(self, num_games: int = 1) -> None:
+    def run_games(self, game_mode: str, num_games: int = 1) -> None:
         try:
             for _ in range(num_games):
                 st.session_state.active_game = True
-                self.wordle_solver.startGame()
+                self.wordle_solver.startGame(game_mode)
                 results = self.wordle_solver.get_results()
                 self.stats_manager.save_stats_csv(*results)
                 st.success("Game completed and stats saved!")
+                if results[3]:
+                    st.toast(f"Solved with {results[4]} guesses", icon="✅")
+                else:
+                    st.toast("Better luck next time 😭😭")
+                st.toast(f"Word of the day is {results[2]}")
         except:
             st.warning("Wordle solver crashed")
             st.rerun()
@@ -386,13 +393,12 @@ class WordleDashboard:
     # schedule based off freq and only play if session state not active
 
 def run_app() -> None:
-    game = WordleSolver("rand") # no param sets it to "auto"
+    game = WordleSolver() # no param sets it to "auto"
     stats = WordleStats("stats.csv")
     dashboard = WordleDashboard(game, stats)
 
     st.title("Wordle Solver Stats Dashboard")
     dashboard.reset_game_session()
-    dashboard.game_settings()
     placeholder = st.empty()
 
     while not True:
