@@ -300,8 +300,7 @@ class WordleDashboard:
         st.session_state.play_enabled = not st.session_state.play_enabled
 
     def game_settings(self) -> None:
-        if "play_enabled" not in st.session_state:
-            st.session_state.play_enabled = False
+        st.session_state.play_enabled = False
 
         schedule_col, manual_col = st.columns(2)
 
@@ -335,10 +334,10 @@ class WordleDashboard:
             
         manual_toggle = st.toggle(
             "Activate manual play", 
-            key=f"manual_toggle", 
-            value=False, 
-            on_change=self.toggle_play_enabled()
+            key=f"manual_toggle",
+            value=st.session_state.play_enabled,
         )
+        st.session_state.play_enabled = manual_toggle
         
         with manual_col:
             with st.form(key=f"game_settings_{int(time.time())}"):
