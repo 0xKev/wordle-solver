@@ -336,7 +336,7 @@ class WordleDashboard:
         manual_toggle = st.toggle(
             "Activate manual play", 
             key=f"manual_toggle", 
-            value=Falsewo, 
+            value=False, 
             on_change=self.toggle_play_enabled()
         )
         
