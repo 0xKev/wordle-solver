@@ -296,8 +296,15 @@ class WordleDashboard:
 
         st.write(consecutive_days + 1)
 
+    def toggle_play_enabled(self) -> None:
+        st.session_state.play_enabled = not st.session_state.play_enabled
 
     def game_settings(self) -> None:
+        if "play_enabled" not in st.session_state:
+            st.session_state.play_enabled = False
+
+        schedule_col, manual_col = st.columns(2)
+
         with st.expander("Schedule game:"):
             freq = st.number_input(
                 label="Select :blue[duration] in between games:sunglasses:",
@@ -312,27 +319,39 @@ class WordleDashboard:
 
             st.session_state.queued_game = True
             st.session_state.game_freq = freq
+            
+        with schedule_col:
+            with st.form(key=f"game_schedule_form_{int(time.time())}"):
+                st.write("Schedule game:")
+                current_scheduled_time = time_class(hour=20) if not self.scheduled_time else self.scheduled_time
+                time_val = st.time_input("Select :blue[time] for automatic Wordle games:sunglasses:", value=current_scheduled_time)
 
-        with st.form(key=f"game_schedule_form_{int(time.time())}"):
-            st.write("Schedule game:")
-            current_scheduled_time = time_class(hour=20) if not self.scheduled_time else self.scheduled_time
-            time_val = st.time_input("Set time for automatic Wordle games", value=current_scheduled_time)
+                self.scheduled_time = time_val
 
-            self.scheduled_time = time_val
+                submitted = st.form_submit_button("Set time")
+                if submitted:
+                    st.write(f"time val is {time_val}\nsession state schedule time is {self.scheduled_time}")
 
-            submitted = st.form_submit_button("Set time")
-        if submitted:
-            st.write(f"time val is {time_val}\nsession state schedule time is {self.scheduled_time}")
+            
+        manual_toggle = st.toggle(
+            "Activate manual play", 
+            key=f"manual_toggle", 
+            value=Falsewo, 
+            on_change=self.toggle_play_enabled()
+        )
+        
+        with manual_col:
+            with st.form(key=f"game_settings_{int(time.time())}"):
 
-        play_enabled = st.toggle("Activate manual play", key=f"play_enabled_{int(time.time())}")
-        if play_enabled:
-            st.session_state.play_enabled = True
+                game_mode = st.radio(
+                    "Select game mode",
+                    ["Random", "Auto"],
+                    captions=["random first guess", "optimized first guess"],
+                    disabled=not st.session_state.play_enabled,
+                    key=f"game_mode_{int(time.time())}"
+                )
 
-        with st.form(key=f"game_settings_{int(time.time())}"):
-            game_mode = st.radio(
-                "Select game mode",
-                ["Random", "Auto"]
-            )
+                submitted = st.form_submit_button("Play game", disabled=not st.session_state.play_enabled)
                 
 
     def schedule_slider_moved(self) -> None:
@@ -374,17 +393,24 @@ def run_app() -> None:
 
     st.title("Wordle Solver Stats Dashboard")
     dashboard.reset_game_session()
+    dashboard.game_settings()
     placeholder = st.empty()
 
-    while True:
+    while not True:
         dashboard.load_data()
         with placeholder.container():
             dashboard.display_tabs_refreshed()
         time.sleep(2)
 
+    dashboard.load_data()
+    dashboard.display_tabs_refreshed()
+
       
     
-
+# no need for loop refresh
+# only refresh if game has been played, make sure to use the st.warning if ailed and success
+# also only auto refresh on set time ffter game played
+# might need set a flag to determine if game ha sjust been played
         
         
                 
