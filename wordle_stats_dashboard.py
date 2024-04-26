@@ -337,7 +337,6 @@ class WordleDashboard:
                 list(game_modes.keys()),
                 captions=["random first guess", "optimized first guess"],
                 disabled=not st.session_state.play_enabled,
-                key=f"game_mode_{int(time.time())}"
             )
 
             manual_submitted = st.button(
@@ -349,9 +348,6 @@ class WordleDashboard:
             if manual_submitted:
                 st.write(f"Game running with game mode {game_modes[game_mode_selections]}")
                 self.run_games(game_mode=game_modes[game_mode_selections])
-                    
-        if st.button("click me to manually run a game"):
-            self.run_games(game_mode="rand")
     
     def queue_game(self) -> None:
         st.session_state.queued_game = True
