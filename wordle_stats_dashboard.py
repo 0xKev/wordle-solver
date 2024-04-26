@@ -80,7 +80,7 @@ class WordleDashboard:
             solved_data[mode] = self.get_filter(game_mode=mode, date=today, solved=True)
             unsolved_data[mode] = self.get_filter(game_mode=mode, date=today, solved=False)
         
-        selected_mode = st.selectbox("Select game mode: ", game_modes, key=f"show_daily_stats__{int(time.time())}")
+        selected_mode = st.selectbox("Select game mode: ", game_modes, key=f"show_daily_stats")
 
         chart_data = data[selected_mode].groupby(["guesses", "solved", "answer"]).size().reset_index(name="count") # .size needed to compute # of elem per group else return obj and not actual result
 
