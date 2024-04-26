@@ -199,7 +199,7 @@ class WordleDashboard:
         for mode in game_modes:
             data[mode] = self.get_filter(game_mode=mode)
         
-        selected_mode = st.selectbox("Select game mode:", game_modes, key=f"show_guess_dist_{int(time.time())}")
+        selected_mode = st.selectbox("Select game mode:", game_modes, key=f"show_guess_dist")
 
         chart_data = data[selected_mode].groupby(["guesses", "solved"]).size().reset_index(name="count")
 
@@ -227,7 +227,7 @@ class WordleDashboard:
             value=(self.min_date, self.max_date), 
             min_value=self.min_date, 
             max_value=self.max_date,
-            key=f"sr_date_selector_{int(time.time())}"
+            key=f"sr_date_selector"
         )
 
         selected_start_date = selected_dates[0].strftime("%Y-%m-%d")
