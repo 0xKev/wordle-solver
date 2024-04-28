@@ -320,10 +320,8 @@ class WordleDashboard:
             time_val = st.time_input("Select :blue[time] for automatic Wordle games:sunglasses:", value=current_scheduled_time)
 
             self.scheduled_time = time_val
-
-            schedule_submitted = st.button("Set time")
-            if schedule_submitted:
-                st.write(f"time val is {time_val}\nsession state schedule time is {self.scheduled_time}")
+          
+            schedule.every().day.at(str(self.scheduled_time)).do(self.scheduled_games)
         
         with manual_col.container(border=True):
             self.toggle_manual_play_btn()
@@ -347,8 +345,8 @@ class WordleDashboard:
             )
 
             if manual_submitted:
-                st.write(f"Game running with game mode {game_modes[game_mode_selections]}")
-                self.run_games(game_mode=game_modes[game_mode_selections])
+                with st.spinner(f"Game running with game mode {game_modes[game_mode_selections]}"):
+                    self.run_games(game_mode=game_modes[game_mode_selections])
     
     def queue_game(self) -> None:
         st.session_state.queued_game = True if st.session_state.active_game != True else False
@@ -383,6 +381,11 @@ class WordleDashboard:
                 st.session_state.game_freq = False
                 st.session_state.queued_game = False
                 st.session_state.active_game= False
+
+    def scheduled_games(self):
+        st.info("Running scheduled games", icon="🔥")
+        self.run_games("rand", 5)
+        self.run_games("auto", 5)
     
     def reset_game_session(self):
         if st.button("Click to reset game sessions to False", disabled=False):
@@ -401,13 +404,7 @@ def run_app() -> None:
     st.title("Wordle Solver Stats Dashboard")
     #dashboard.reset_game_session()
     placeholder = st.empty()
-
-    while not True:
-        dashboard.load_data()
-        with placeholder.container():
-            dashboard.display_tabs_refreshed()
-        time.sleep(2)
-
+    schedule.run_pending()
     dashboard.load_data()
     dashboard.display_tabs_refreshed()
 
