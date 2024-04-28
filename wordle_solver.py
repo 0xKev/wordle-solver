@@ -408,6 +408,8 @@ class WordleSolver:
         chrome_options.add_argument("--incognito")
         chrome_options.add_argument("--ignore-certificate-errors")
         chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("window-size=1900,1080") # required for linux
 
         wordle = webdriver.Chrome(options=chrome_options)
         wordle.get('https://www.nytimes.com/games/wordle/index.html')

@@ -374,8 +374,10 @@ class WordleDashboard:
                     else:
                         st.toast("Better luck next time 😭😭")
                     st.toast(f"Word of the day is {results[2]}")
-            except:
+            except Exception as err:
                 st.warning("Wordle solver crashed")
+                st.write(err)
+                print(err)
                 st.rerun()
             finally:
                 st.session_state.game_freq = False
