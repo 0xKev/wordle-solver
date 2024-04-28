@@ -7,6 +7,7 @@ import time
 import altair as alt
 from datetime import datetime
 from datetime import time as time_class
+import schedule
 
 class WordleDashboard:
     def __init__(self, wordle_solver: WordleSolver, stats_manager: WordleStats):
@@ -132,7 +133,7 @@ class WordleDashboard:
                 "Game Mode Distribution": self.show_game_mode_dist,
                 "Guess Distribution": self.show_guess_dist, 
                 "Success Rate": self.show_success_rate, 
-                "Streaks": self.show_streaks,
+                #"Streaks": self.show_streaks,
                 "Settings": self.game_settings,
         }
 
@@ -342,7 +343,7 @@ class WordleDashboard:
             manual_submitted = st.button(
                 "Play game", 
                 disabled=not st.session_state.play_enabled,
-                on_click=self.queue_game
+                on_click=self.queue_game()
             )
 
             if manual_submitted:
@@ -350,7 +351,7 @@ class WordleDashboard:
                 self.run_games(game_mode=game_modes[game_mode_selections])
     
     def queue_game(self) -> None:
-        st.session_state.queued_game = True
+        st.session_state.queued_game = True if st.session_state.active_game != True else False
 
     def schedule_slider_moved(self) -> None:
         st.session_state.slider_moved = True
@@ -362,7 +363,7 @@ class WordleDashboard:
 
     # use some kinda progress bar
     def run_games(self, game_mode: str, num_games: int = 1) -> None:
-        if st.session_state.active_game != True:
+        if st.session_state.active_game != True and st.session_state.queued_game == True:    
             try:
                 for _ in range(num_games):
                     st.session_state.active_game = True
@@ -398,7 +399,7 @@ def run_app() -> None:
     dashboard = WordleDashboard(game, stats)
 
     st.title("Wordle Solver Stats Dashboard")
-    dashboard.reset_game_session()
+    #dashboard.reset_game_session()
     placeholder = st.empty()
 
     while not True:
