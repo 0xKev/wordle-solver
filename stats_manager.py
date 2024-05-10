@@ -1,7 +1,5 @@
 import csv
 from datetime import datetime
-import pandas as pd
-import os
 from pathlib import Path
 
 class WordleStats:
@@ -23,14 +21,15 @@ class WordleStats:
         #     print(f"File exists: {self.file}")
         output_file = Path(self.file)
         output_file.parent.mkdir(exist_ok=True, parents=True)
-        output_file.write_text("date;game_mode;answer;solved;guesses")
+        if not output_file.exists():
+            output_file.write_text("date;game_mode;answer;solved;guesses\n")
 
     def save_stats_csv(self, date: str, game_mode: str, answer: str, solved: bool, guesses: int):
-        with open(self.file, "a+", newline="") as stats_file: # unable to read with "a" append 
-            writer = csv.writer(stats_file)
-            row_data: list = [f"{date};{game_mode};{answer};{solved};{guesses}"]
+        with open(self.file, "a", newline="") as stats_file: # unable to read with "a" append 
+            writer = csv.writer(stats_file, delimiter=";")
+            row_data: list = [date, game_mode, answer, solved, guesses]
             writer.writerow(row_data)
-
+          
     def get_answer(self, date: str = None) -> str:
         with open(self.file, "r", newline="") as stats_file:
             reader = csv.reader(stats_file, delimiter=";")
