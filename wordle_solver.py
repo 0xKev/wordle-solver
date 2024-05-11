@@ -411,39 +411,42 @@ class WordleSolver:
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("window-size=1900,1080") # required for linux
 
-        wordle = webdriver.Chrome(options=chrome_options)
-        wordle.get('https://www.nytimes.com/games/wordle/index.html')
+        try:
+            wordle = webdriver.Chrome(options=chrome_options)
+            wordle.get('https://www.nytimes.com/games/wordle/index.html')
 
-        wait = WebDriverWait(wordle, 5)
-        
-        play_button = wait.until(EC.presence_of_element_located((By.XPATH, f'//button[@type="button"]')))
-        play_button.click()
+            wait = WebDriverWait(wordle, 5)
+            
+            play_button = wait.until(EC.presence_of_element_located((By.XPATH, f'//button[@type="button"]')))
+            play_button.click()
 
-        x_button = wordle.find_element(By.XPATH, "//button[@type='button']")
-        x_button.click()
-
-        match self.game_mode:
-            case "manual":
-                self.manual_play(wordle)
-            case "rand": 
-                self.random_auto_play(wordle)
-            case "auto":
-                self.auto_play(wordle)
-        
-        self.__solved: bool = self.is_wordle_solved()
-        if self.__solved:
-            print("Wordle solved!")
-        else:
-            print("Wordle not solved!")
-        answer = self.show_correct_answer(wordle)
-        
-        print("The word of the day is:", answer)
-
+            x_button = wordle.find_element(By.XPATH, "//button[@type='button']")
+            x_button.click()
+ 
+            match self.game_mode:
+                case "manual":
+                    self.manual_play(wordle)
+                case "rand": 
+                    self.random_auto_play(wordle)
+                case "auto":
+                    self.auto_play(wordle)
+            
+            self.__solved: bool = self.is_wordle_solved()
+            if self.__solved:
+                print("Wordle solved!")
+            else:
+                print("Wordle not solved!")
+            answer = self.show_correct_answer(wordle)
+            
+            print("The word of the day is:", answer)
+        except Exception as err:
+            print(err)
+            print("Wordle crashed. Quitting...")
+        finally:
+            wordle.quit()
 
         # track attempts in __init__ and each play mode resets
         
-        wordle.quit()
-        time.sleep(1)
 
         # date;game_mode;answer;solved;guesses
 
