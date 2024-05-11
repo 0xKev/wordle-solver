@@ -370,17 +370,18 @@ class WordleDashboard:
     def run_games(self, game_mode: str, num_games: int = 1) -> None:
         if st.session_state.active_game == False and st.session_state.queued_game == True:    
             try:
-                for _ in range(num_games):
-                    st.session_state.active_game = True
-                    self.wordle_solver.startGame(game_mode)
-                    results = self.wordle_solver.get_results()
-                    self.stats_manager.save_stats_csv(*results)
-                    st.success("Game completed and stats saved!")
-                    if results[3]:
-                        st.toast(f"Solved with {results[4]} guesses", icon="✅")
-                    else:
-                        st.toast("Better luck next time 😭😭")
-                    st.toast(f"Word of the day is {results[2]}")
+                for game_num in range(num_games):
+                    st.session_state.active_game = False
+                    if st.session_state.active_game == False and st.session_state.queued_game == True:  
+                        st.session_state.active_game = True
+                        self.wordle_solver.startGame(game_mode)
+                        results = self.wordle_solver.get_results()
+                        self.stats_manager.save_stats_csv(*results)
+                        if results[3]:
+                            st.toast(f"Solved with {results[4]} guesses", icon="✅")
+                        else:
+                            st.toast("Better luck next time 😭😭")
+                        st.toast(f"Word of the day is {results[2]}")
             except Exception as err:
                 st.warning("Wordle solver crashed")
                 st.write(err)
