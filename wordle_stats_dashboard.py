@@ -331,9 +331,7 @@ class WordleDashboard:
             time_val = st.time_input("Select :blue[time] for automatic Wordle games:sunglasses:", value=current_scheduled_time)
 
             self.scheduled_time = time_val
-          
-            schedule.every().day.at(str(self.scheduled_time)).do(self.scheduled_games)
-        
+                  
         with manual_col.container(border=True):
             self.toggle_manual_play_btn()
 
@@ -360,7 +358,7 @@ class WordleDashboard:
                     self.run_games(game_mode=game_modes[game_mode_selections])
     
     def queue_game(self) -> None:
-        st.session_state.queued_game = True if st.session_state.active_game != True else False
+        st.session_state.queued_game = True if st.session_state.active_game == False else False
 
     def schedule_slider_moved(self) -> None:
         st.session_state.slider_moved = True
@@ -372,7 +370,7 @@ class WordleDashboard:
 
     # use some kinda progress bar
     def run_games(self, game_mode: str, num_games: int = 1) -> None:
-        if st.session_state.active_game != True and st.session_state.queued_game == True:    
+        if st.session_state.active_game == False and st.session_state.queued_game == True:    
             try:
                 for _ in range(num_games):
                     st.session_state.active_game = True
