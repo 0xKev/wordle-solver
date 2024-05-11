@@ -4,7 +4,7 @@ from pathlib import Path
 
 class WordleStats:
     def __init__(self, filename: str):
-        self.file = f"database/{filename}" # Make sure to include .csv at end of file name
+        self.file = f"../database/{filename}" # Make sure to include .csv at end of file name
         # create headers along with init
         # game mode, date, success or fail, word answer, 
 
