@@ -247,8 +247,6 @@ class WordleDashboard:
         selected_start_date = selected_dates[0].strftime("%Y-%m-%d")
         selected_end_date = selected_dates[1].strftime("%Y-%m-%d") if len(selected_dates) == 2 else selected_start_date
         
-        #selected_mode = st.selectbox("Choose a game mode:", game_modes)
-
         for mode in game_modes:
             filtered_data = self.get_filter(game_mode=mode, date_range=(selected_start_date, selected_end_date))
             mode_success_rates[mode] = filtered_data
