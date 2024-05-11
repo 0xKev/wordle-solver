@@ -264,11 +264,9 @@ class WordleDashboard:
             .mark_bar()
             .encode(
                 alt.X("game_mode:N", title="Game mode", axis=alt.Axis(labelAngle=0)),
-                alt.Y("success_rate:Q", title="Success Rate", axis=alt.Axis(format='%', tickMinStep=1)) # y axis expectes numeric values
+                alt.Y("success_rate:Q", title="Success Rate", axis=alt.Axis(format='%', tickMinStep=1), scale=alt.Scale(domain=[0, 1])) # y axis expectes numeric values
             )
         )
-        #st.write(f"{selected_mode} sr: {success_rates[selected_mode]}")
-
             
         st.altair_chart(altair_chart=alt_chart, use_container_width=True)
     
