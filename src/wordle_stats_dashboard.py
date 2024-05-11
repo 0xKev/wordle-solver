@@ -431,13 +431,6 @@ def run_app() -> None:
 
     dashboard.load_data()
     dashboard.display_tabs_refreshed()
-    dashboard.test_run_games()
-    # schedule.every().day.at(str(dashboard.scheduled_time)).do(dashboard.scheduled_games)
-    dashboard.reset_game_session()
-    st.write(f"queue: {dashboard.is_queued_game()}, active: {dashboard.is_active_game()}")
-    # while not dashboard.is_active_game() and not dashboard.is_queued_game():
-    #     schedule.every(2).seconds.do(lambda: dashboard.scheduled_games)
-    #     run_threaded(run_scheduler)
     
     placeholder = st.empty()
 
