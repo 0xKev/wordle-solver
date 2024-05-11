@@ -276,7 +276,7 @@ class WordleDashboard:
         fails: int = len(data_set[(data_set["solved"] == False)])
         total: int = success + fails
 
-        return round((success / total), 2) if fails != 0 else 1
+        return round((success / total), 2) if total != 0 else 0
         
         
 
