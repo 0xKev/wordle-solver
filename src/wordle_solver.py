@@ -5,7 +5,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 import ast # To eval python literals, does not execute code
 import logging
-import sys # to exit ------ might be unncessary
+import argparse
 import time
 from random import randint # only used to test auto play, starting random words
 from datetime import datetime
@@ -531,11 +531,13 @@ class WordleSolver:
 
     
 if __name__ ==  '__main__':
-    pass
-    
+    game = WordleSolver()
+    stats = WordleStats("stats.csv")
 
-        
-    #word_list = get_words_list()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mode", help="select game mode", choices=["manual", "auto", "rand"])
+    args = parser.parse_args()
 
-    #starting_guess = solve_next_word(word_list, incorrect_letters)
-    
+    if args.mode:
+        print(f"---Starting {args.mode} game---")
+        game.startGame(args.mode)
