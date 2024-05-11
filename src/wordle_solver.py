@@ -37,7 +37,7 @@ class WordleSolver:
         - word_list: The list of words.
         """
         try:
-            with open('words.txt', 'r') as word_txt:
+            with open('../data/words.txt', 'r') as word_txt:
 
                 word_txt = word_txt.read()
                 word_list = ast.literal_eval(word_txt)
@@ -531,16 +531,8 @@ class WordleSolver:
 
     
 if __name__ ==  '__main__':
-    def play_games()
-
-    game = WordleSolver() # no param sets it to "auto"
-    stats = WordleStats("stats.csv")
-    for i in range(100):
-        game.startGame("rand")
-        results: list = game.get_results()
-        print(results)
-        stats.save_stats_csv(*results)
-        print("--- Stats saved ---")
+    pass
+    
 
         
     #word_list = get_words_list()
