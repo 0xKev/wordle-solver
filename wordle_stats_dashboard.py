@@ -402,6 +402,17 @@ class WordleDashboard:
             st.session_state.queued_game = False
             st.session_state.active_game = False
             st.session_state.game_freq = False
+    
+    def is_active_game(self) -> bool:
+        return st.session_state.active_game
+
+    def is_queued_game(self) -> bool:
+        return st.session_state.queued_game
+    
+    def test_run_games(self):
+        if st.button("run 3 games"):
+            self.run_games(game_mode="rand", num_games=3)
+    
 
     # sessino state saves freq and if game active
     # schedule based off freq and only play if session state not active
