@@ -407,7 +407,7 @@ class WordleSolver:
         chrome_options.add_argument('--log-level=3')
         chrome_options.add_argument("--incognito")
         chrome_options.add_argument("--ignore-certificate-errors")
-        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--headless=new")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("window-size=1900,1080") # required for linux
 
