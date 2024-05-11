@@ -74,6 +74,8 @@ class WordleDashboard:
         return filtered_data
     
     def show_daily_stats(self):
+        if self.data_empty():
+            return
         today = datetime.today().strftime("%Y-%m-%d")
         game_modes: list = self.raw_data["game_mode"].unique().tolist() + ["all"]
 
@@ -175,6 +177,8 @@ class WordleDashboard:
         st.line_chart(data=data[selected_mode], y="guesses")
     
     def show_game_mode_dist(self):
+        if self.data_empty():
+            return
         st.subheader("Game Mode Distribution")
         game_mode_counts = self.raw_data["game_mode"].value_counts() # index = list[game modes] , values = list[counts]
         
@@ -197,6 +201,8 @@ class WordleDashboard:
         st.altair_chart(altair_chart=alt_chart, use_container_width=True)
 
     def show_guess_dist(self):
+        if self.data_empty():
+            return
         st.subheader("Total Guess Distribution")
 
         data = {}
@@ -222,6 +228,8 @@ class WordleDashboard:
         st.altair_chart(altair_chart=alt_chart, use_container_width=True)
 
     def show_success_rate(self):
+        if self.data_empty():
+            return
         st.subheader("Success Rate")
 
         mode_success_rates = {}
