@@ -2,6 +2,21 @@
 Python program that helps you solve the daily Wordle puzzle by giving you the next best word to guess.
 
 # Usage #
+```
+Temporary new instructions (Will be updated ASAP):
+Please refer to "Getting Started" section for more information.
+
+
+pip install -r requirements.txt
+cd wordle-solver/src
+python -m streamlit run wordle_stats_dashboard
+
+You will then be greeted with a Streamlit dashboard of the Wordle Solver along with stats and be able to queue up games on the dashboard.
+
+** README.md will be updated ASAP **
+** Dockerfile is not up to date **
+```
+
 
 Make sure you're using Python3.
 Run the below command in your Terminal:
