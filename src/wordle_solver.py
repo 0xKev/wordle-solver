@@ -541,7 +541,7 @@ if __name__ ==  '__main__':
     stats = WordleStats("stats.csv")
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", help="select game mode", choices=["manual", "auto", "rand"])
+    parser.add_argument("--mode", help="select game mode", choices=["manual", "auto", "rand"], required=True)
     args = parser.parse_args()
 
     if args.mode:
