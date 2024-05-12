@@ -5,20 +5,10 @@ from pathlib import Path
 class WordleStats:
     def __init__(self, filename: str):
         self.file = f"../database/{filename}" # Make sure to include .csv at end of file name
-        # create headers along with init
-        # game mode, date, success or fail, word answer, 
-
+        
         self.create_headers()
     
-    # "x" creates file and opens to write, use "x" when done but ""
     def create_headers(self):
-        # if not os.path.exists(self.file):
-        #     print(f"Creating {self.file}...")
-        #     with open(self.file, "w+", newline="") as stats_file:
-        #         writer = csv.writer(stats_file)
-        #         writer.writerow(["date;game_mode;answer;solved;guesses"])
-        # else:
-        #     print(f"File exists: {self.file}")
         output_file = Path(self.file)
         output_file.parent.mkdir(exist_ok=True, parents=True)
         if not output_file.exists():
@@ -43,12 +33,6 @@ class WordleStats:
 
     def get_file(self):
         return self.file
- 
-
-
-        
-            
-
 
 if __name__ == "__main__":
     today = datetime.today().strftime("%Y-%m-%d") # year-month-day
