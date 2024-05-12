@@ -390,7 +390,7 @@ class WordleSolver:
             return True
         return False
         
-    def startGame(self, mode: str = "auto") -> None:
+    def startGame(self, mode: str = "auto", browser: bool = "False") -> None:
         """
         Start the Wordle game.
 
@@ -405,10 +405,12 @@ class WordleSolver:
 
         # Set the logging level to only show fatal messages
         chrome_options = Options()
+        if browser:
+            chrome_options.add_argument("--headless=new")
+
         chrome_options.add_argument('--log-level=3')
         chrome_options.add_argument("--incognito")
         chrome_options.add_argument("--ignore-certificate-errors")
-        chrome_options.add_argument("--headless=new")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("window-size=1900,1080") # required for linux
 
