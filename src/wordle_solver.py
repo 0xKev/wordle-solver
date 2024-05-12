@@ -7,7 +7,7 @@ import ast # To eval python literals, does not execute code
 import logging
 import argparse
 import time
-from random import randint # only used to test auto play, starting random words
+from random import randint 
 from datetime import datetime
 
 from stats_manager import WordleStats
@@ -268,8 +268,6 @@ class WordleSolver:
         Returns:
         - correct_word: The correct word.
         """
-        
-        
         wait = WebDriverWait(wordle, 10)
 
         if self.is_wordle_solved():
@@ -313,7 +311,6 @@ class WordleSolver:
 
             if letter_status[4].get_attribute('data-state') != 'tbd':
                 break
-        #letter_status = wait.until(EC.presence_of_all_elements_located((By.XPATH, './/div[@data-state!="tbd"]')))
         
         for position, tile in enumerate(letter_status):
             letter_data_state = tile.get_attribute('data-state')
@@ -447,11 +444,6 @@ class WordleSolver:
         finally:
             wordle.quit()
 
-        # track attempts in __init__ and each play mode resets
-        
-
-        # date;game_mode;answer;solved;guesses
-
     def manual_play(self, wordle: webdriver) -> None:
         while self.attempts < self.__max_attempts:
             if self.attempts != 6:
@@ -530,11 +522,6 @@ class WordleSolver:
     
     def __str__(self):
         raise NotImplementedError("__str__ is not coded.")
-        # date;game_mode;answer;solved;guesses
-        # write each world game to csv file
-        # look into the free google hosting? to have 10 games per day tracker with dashboard
-        # if not csv tracker, look into other databases
-
     
 if __name__ ==  '__main__':
     game = WordleSolver()
