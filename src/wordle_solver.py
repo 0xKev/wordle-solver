@@ -4,6 +4,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 import ast # To eval python literals, does not execute code
+import os
 import logging
 import argparse
 import time
@@ -43,7 +44,7 @@ class WordleSolver:
                 word_list = ast.literal_eval(word_txt)
                 
         except:
-            print('Word list not found!')
+            raise FileNotFoundError("Word list not found!")
 
         return word_list
 
@@ -547,9 +548,10 @@ class WordleSolver:
     def __str__(self):
         raise NotImplementedError("__str__ is not coded.")
     
-if __name__ ==  '__main__':
-    game = WordleSolver()
-    stats = WordleStats("stats.csv")
+def set_working_directory() -> None:
+    called_py_path = os.path.abspath(__file__)    
+    py_dir = os.path.dirname(called_py_path)
+    os.chdir(py_dir)
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", help="select game mode", choices=["manual", "auto", "rand"], required=True)
