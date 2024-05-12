@@ -430,20 +430,43 @@ class WordleSolver:
                     self.random_auto_play(wordle)
                 case "auto":
                     self.auto_play(wordle)
-            
-            self.__solved: bool = self.is_wordle_solved()
-            if self.__solved:
-                print("Wordle solved!")
-            else:
-                print("Wordle not solved!")
+
             answer = self.show_correct_answer(wordle)
+            self.print_game_result_box()
             
-            print("The word of the day is:", answer)
         except Exception as err:
             print(err)
             print("Wordle crashed. Quitting...")
         finally:
             wordle.quit()
+    
+    def print_game_result_box(self) -> None:
+        print()
+        result_msg = "Wordle solved!" if self.__solved else "Wordle not solved!"
+        answer_msg = f"The word of the day is {self.__answer}"
+        max_msg_len = max(len(result_msg), len(answer_msg))
+
+        border_padding = 4
+        box_length = max_msg_len + border_padding + 2 # + 2 to compensate for border walls
+        box_border = "#"
+        empty_line_padding = "#" + " " * (box_length - 2) + "#"
+
+        res_l_side_padding = "#" + " " * int((box_length - len(result_msg)) / 2 - 1)
+        res_r_side_padding = res_l_side_padding[::-1]
+
+        ans_l_side_padding = "#" + " " * int(border_padding / 2)
+        ans_r_side_padding = ans_l_side_padding[::-1]
+
+        result_msg_formatted = res_l_side_padding + result_msg + res_r_side_padding
+        answer_msg_formatted = ans_l_side_padding + answer_msg + ans_r_side_padding 
+
+        print(box_border * box_length)
+        print(empty_line_padding)
+        print(result_msg_formatted)
+        print(answer_msg_formatted)
+        print(empty_line_padding)
+        print(box_border * box_length)
+
 
     def manual_play(self, wordle: webdriver) -> None:
         while self.attempts < self.__max_attempts:
