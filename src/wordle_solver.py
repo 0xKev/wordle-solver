@@ -559,6 +559,12 @@ def set_working_directory() -> None:
     parser.add_argument("--mode", help="select game mode", choices=["manual", "auto", "rand"], required=True)
     args = parser.parse_args()
 
+def initialize_game_and_stats() -> tuple[WordleSolver, WordleStats]:
+    game = WordleSolver()
+    stats = WordleStats("stats.csv")
+
+    return game, stats
+
     if args.mode:
         print(f"---Starting {args.mode} game---")
         game.startGame(args.mode)
