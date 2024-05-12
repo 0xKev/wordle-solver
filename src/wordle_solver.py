@@ -130,8 +130,6 @@ class WordleSolver:
         self.word_list = self.eliminate_incorrect_letters() # Eliminates incorrect letter positions
         self.word_list = self.eliminate_wo_correct_letters() # Eliminates words without correct letters
         self.word_list = self.eliminate_wrong_pos_letters()
-
-        print()
             
         possible_guess = self.letter_frequency_rating()[1]
         print("Next possible guess:", possible_guess)
@@ -321,13 +319,15 @@ class WordleSolver:
             letter_data_state = tile.get_attribute('data-state')
             letter = tile.text
             if letter_data_state in self.letter_state_action:
-                if letter.lower() in self.correct_letters[position]:
-                    print('Duplicate correct: ', letter)
+                # if letter.lower() in self.correct_letters[position]:
+                #     print('Duplicate correct: ', letter)
                 
-                elif letter.lower() in self.incorrect_letters[position]:
-                    print('Duplicate incorrect: ', letter)
+                # elif letter.lower() in self.incorrect_letters[position]:
+                #     print('Duplicate incorrect: ', letter)
 
-                else:
+                # else:
+                #     self.letter_state_action[letter_data_state](letter.lower(), position)
+                if letter.lower() not in [self.correct_letters[position], self.incorrect_letters[position]]:
                     self.letter_state_action[letter_data_state](letter.lower(), position)
                 
     def submit_guess(self, wordle: webdriver, letters: str) -> None:       
@@ -347,6 +347,8 @@ class WordleSolver:
         for letter in list(letters):
             wordle.find_element(By.XPATH, f'//button[@data-key="{letter}"]').click()
         
+        if True:
+            print(f"Submitted guess: {letters}")
         wordle.find_element(By.XPATH, f'//button[@data-key="↵"]').click()
             
     def user_guess(self):
@@ -467,25 +469,29 @@ class WordleSolver:
     
     def auto_play(self, wordle: webdriver) -> None:    
         for guesses in range(self.__max_attempts): # wordle row starts from 1, not 0 based indexing (6 guesses total)
-            print("This is attempt", self.attempts + 1)
             if self.is_wordle_solved(): 
                 self.attempts = guesses
                 break
-            guess = self.solve_next_word() if guesses != 1 else self.word_list[randint(0, len(self.word_list) + 1)] # randomize for testing
+
+            print("-------")
+            print(f"This is attempt {self.attempts + 1}")
+
+            guess = self.solve_next_word()
             time.sleep(1)
             self.submit_guess(wordle, guess)
             time.sleep(1)
             self.update_letter_status(wordle)
             self.attempts += 1
 
-
+        
 
     def random_auto_play(self, wordle: webdriver) -> None:
         for guesses in range(self.__max_attempts): # wordle row starts from 1, not 0 based indexing
-            print("This is attempt", self.attempts + 1)
             if self.is_wordle_solved():
                 break
-
+            
+            print("-------")
+            print("This is attempt", self.attempts + 1)
             
             guess = self.solve_next_word() if guesses != 0 else self.word_list[randint(0, len(self.word_list))]
             time.sleep(1)
