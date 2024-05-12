@@ -385,6 +385,7 @@ class WordleSolver:
             bool: True if the puzzle is solved, False otherwise.
         """
         if len(sum(self.correct_letters.values(), [])) == 5:
+            self.__solved = True
             return True
         return False
         
