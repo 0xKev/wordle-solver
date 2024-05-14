@@ -391,7 +391,7 @@ class WordleSolver:
             return True
         return False
         
-    def startGame(self, mode: str = "auto", browser: bool = "False") -> None:
+    def startGame(self, mode: str = "auto", browser: bool = False) -> None:
         """
         Start the Wordle game.
 
@@ -406,14 +406,15 @@ class WordleSolver:
 
         # Set the logging level to only show fatal messages
         chrome_options = Options()
-        if browser:
+        if not browser:
             chrome_options.add_argument("--headless=new")
+            chrome_options.add_argument("window-size=1900,1080") # required for linux
+
 
         chrome_options.add_argument('--log-level=3')
         chrome_options.add_argument("--incognito")
         chrome_options.add_argument("--ignore-certificate-errors")
         chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("window-size=1900,1080") # required for linux
 
         try:
             wordle = webdriver.Chrome(options=chrome_options)
@@ -556,9 +557,22 @@ def set_working_directory() -> None:
     py_dir = os.path.dirname(called_py_path)
     os.chdir(py_dir)
 
+def parse_cmd_arguments() -> argparse:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", help="select game mode", choices=["manual", "auto", "rand"], required=True)
+    parser.add_argument(
+        "--mode", 
+        help="select game mode",
+        choices=["manual", "auto", "rand"], 
+        required=True
+    )
+    parser.add_argument(
+        "--browser", 
+        help="solver opens a selenium browser window for you to watch as it solves",
+        action="store_true"
+    )
     args = parser.parse_args()
+
+    return args
 
 def initialize_game_and_stats() -> tuple[WordleSolver, WordleStats]:
     game = WordleSolver()
@@ -566,6 +580,11 @@ def initialize_game_and_stats() -> tuple[WordleSolver, WordleStats]:
 
     return game, stats
 
+if __name__ ==  '__main__':
+    set_working_directory()
+    game, stats = initialize_game_and_stats()
+    args = parse_cmd_arguments()
+
     if args.mode:
         print(f"---Starting {args.mode} game---")
-        game.startGame(args.mode)
+        game.startGame(args.mode, args.browser)
