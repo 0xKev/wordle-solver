@@ -15,6 +15,7 @@ from stats_manager import WordleStats
 
 class WordleSolver:
     def __init__(self):
+        set_working_directory()
         self.incorrect_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
         self.correct_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
         self.wrong_position_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
