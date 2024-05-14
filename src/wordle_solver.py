@@ -15,7 +15,6 @@ from stats_manager import WordleStats
 
 class WordleSolver:
     def __init__(self):
-        set_working_directory()
         self.incorrect_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
         self.correct_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
         self.wrong_position_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
@@ -581,7 +580,7 @@ def initialize_game_and_stats() -> tuple[WordleSolver, WordleStats]:
 
     return game, stats
 
-if __name__ ==  '__main__':
+if __name__ ==  '__main__':    
     set_working_directory()
     game, stats = initialize_game_and_stats()
     args = parse_cmd_arguments()
@@ -589,3 +588,6 @@ if __name__ ==  '__main__':
     if args.mode:
         print(f"---Starting {args.mode} game---")
         game.startGame(args.mode, args.browser)
+        results: list = game.get_results()
+        stats.save_stats_csv(*results)
+        print("--- Stats saved ---")    
