@@ -15,10 +15,11 @@ class WordleStats:
             output_file.write_text("date;game_mode;answer;solved;guesses\n")
 
     def save_stats_csv(self, date: str, game_mode: str, answer: str, solved: bool, guesses: int):
-        with open(self.file, "a", newline="") as stats_file: # unable to read with "a" append 
-            writer = csv.writer(stats_file, delimiter=";")
-            row_data: list = [date, game_mode, answer, solved, guesses]
-            writer.writerow(row_data)
+        if self.check_valid_stats(guesses, answer):
+            with open(self.file, "a", newline="") as stats_file: # unable to read with "a" append 
+                writer = csv.writer(stats_file, delimiter=";")
+                row_data: list = [date, game_mode, answer, solved, guesses]
+                writer.writerow(row_data)
           
     def get_answer(self, date: str = None) -> str:
         with open(self.file, "r", newline="") as stats_file:
@@ -30,6 +31,16 @@ class WordleStats:
                         return row[2]
                 else:
                     return row[2]
+                
+    def check_valid_stats(self, guesses: int, answer: str) -> bool:
+        ## 2024-05-14;rand;;False;0
+        # check for invalid results - due to wordle crashes
+        try:
+            if answer == "" or guesses == 0:
+                return False
+            return True
+        except:
+            print(f"Result not saved due to Wordle crash.")
 
     def get_file(self):
         return self.file
