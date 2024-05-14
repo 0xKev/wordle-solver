@@ -389,6 +389,7 @@ class WordleSolver:
         if len(sum(self.correct_letters.values(), [])) == 5:
             self.__solved = True
             return True
+        self.__solved = False
         return False
         
     def startGame(self, mode: str = "auto", browser: bool = False) -> None:
