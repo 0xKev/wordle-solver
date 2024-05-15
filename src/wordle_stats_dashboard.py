@@ -1,5 +1,5 @@
 from wordle_solver import WordleSolver
-from wordle_solver import WordleStats
+from stats_manager import WordleStats
 
 import streamlit as st
 import pandas as pd
