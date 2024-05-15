@@ -43,7 +43,7 @@ class WordleDashboard:
         if len(self.raw_data) == 0:
             st.warning("No data available. Please play some games to generate stats.")
             return True
-        
+        return False
 
     def update_minMax_date(self) -> None:
         self.min_date = self.raw_data["date"].dt.date.min()
