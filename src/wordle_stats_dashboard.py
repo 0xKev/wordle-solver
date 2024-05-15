@@ -9,6 +9,7 @@ from datetime import datetime
 from datetime import time as time_class
 import schedule
 import threading
+import os
 
 class WordleDashboard:
     def __init__(self, wordle_solver: WordleSolver, stats_manager: WordleStats):
@@ -434,6 +435,10 @@ def run_app() -> None:
     
     placeholder = st.empty()
 
+def set_working_directory() -> None:
+    called_py_path = os.path.abspath(__file__)    
+    py_dir = os.path.dirname(called_py_path)
+    os.chdir(py_dir)
       
     
 # no need for loop refresh
@@ -442,8 +447,6 @@ def run_app() -> None:
 # might need set a flag to determine if game ha sjust been played
         
         
-                
-
-
 if __name__ == "__main__":
+    set_working_directory()
     run_app()
