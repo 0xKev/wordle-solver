@@ -393,6 +393,8 @@ class WordleDashboard:
                 st.session_state.game_freq = False
                 st.session_state.queued_game = False
                 st.session_state.active_game= False
+                time.sleep(4)
+                st.rerun()
 
     def scheduled_games(self):
         st.info("Running scheduled games", icon="🔥")
