@@ -445,6 +445,13 @@ class WordleSolver:
             print(err)
             print("Wordle crashed. Quitting...")
         finally:
+            self.close_webdriver()
+
+    def close_webdriver(self) -> None:
+        if not self.wordle and self.wordle.service.is_connectable():
+            self.wordle.quit()
+            self.wordle = None
+
     def print_game_result_box(self) -> None:
         print()
         result_msg = "Wordle solved!" if self.__solved else "Wordle not solved!"
