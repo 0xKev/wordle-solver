@@ -30,6 +30,7 @@ class WordleSolver:
         self.game_mode = ""
         self.__answer = ""
         self.__solved: bool = ""
+        self.wordle = None
 
     def get_words_list(self) -> list[str]:
         """
@@ -418,34 +419,32 @@ class WordleSolver:
         chrome_options.add_argument("--no-sandbox")
 
         try:
-            wordle = webdriver.Chrome(options=chrome_options)
-            wordle.get('https://www.nytimes.com/games/wordle/index.html')
+            self.wordle = webdriver.Chrome(options=chrome_options)
+            self.wordle.get('https://www.nytimes.com/games/wordle/index.html')
 
-            wait = WebDriverWait(wordle, 5)
+            wait = WebDriverWait(self.wordle, 5)
             
             play_button = wait.until(EC.presence_of_element_located((By.XPATH, f'//button[@type="button"]')))
             play_button.click()
 
-            x_button = wordle.find_element(By.XPATH, "//button[@type='button']")
+            x_button = self.wordle.find_element(By.XPATH, "//button[@type='button']")
             x_button.click()
  
             match self.game_mode:
                 case "manual":
-                    self.manual_play(wordle)
+                    self.manual_play(self.wordle)
                 case "rand": 
-                    self.random_auto_play(wordle)
+                    self.random_auto_play(self.wordle)
                 case "auto":
-                    self.auto_play(wordle)
+                    self.auto_play(self.wordle)
 
-            answer = self.show_correct_answer(wordle)
+            answer = self.show_correct_answer(self.wordle)
             self.print_game_result_box()
             
         except Exception as err:
             print(err)
             print("Wordle crashed. Quitting...")
         finally:
-            wordle.quit()
-    
     def print_game_result_box(self) -> None:
         print()
         result_msg = "Wordle solved!" if self.__solved else "Wordle not solved!"
@@ -532,6 +531,7 @@ class WordleSolver:
         self.incorrect_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
         self.correct_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
         self.wrong_position_letters = {0: [], 1: [], 2: [], 3: [], 4: []}# format as {position: letter}
+        self.wordle = None
                 
     def print_win_rate(self, yes: int, no: int):
         total_games_played = yes + no
