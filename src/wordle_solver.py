@@ -11,6 +11,7 @@ import time
 from random import randint 
 from datetime import datetime
 
+import signal
 from stats_manager import WordleStats
 
 class WordleSolver:
@@ -579,6 +580,11 @@ def initialize_game_and_stats() -> tuple[WordleSolver, WordleStats]:
     stats = WordleStats("stats.csv")
 
     return game, stats
+
+def signal_handler(sig_num, frame):
+    print("INTERRUPT Signal received. Shutting down web driver.")
+    game.close_webdriver()
+    sys.exit(0)
 
 if __name__ ==  '__main__':    
     set_working_directory()
