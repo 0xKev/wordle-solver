@@ -591,6 +591,8 @@ if __name__ ==  '__main__':
     game, stats = initialize_game_and_stats()
     args = parse_cmd_arguments()
 
+    signal.signal(signal.SIGINT, signal_handler)
+
     if args.mode:
         print(f"---Starting {args.mode} game---")
         game.startGame(args.mode, args.browser)
