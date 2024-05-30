@@ -6,6 +6,7 @@ Python program that helps you solve the daily Wordle puzzle by giving you the ne
 - [Command Line Usage](#command-line)
 - [Dashboard](#dashboard)
 - [Examples](#examples)
+- [Known Bugs](#known-bugs-will-be-fixed-asap)
 
 
 # Usage #
@@ -102,3 +103,15 @@ pip install -r requirements.txt
 cd src/
 ```
 ### [Jump to usage](#usage)
+
+# Known Bugs (will be fixed ASAP)
+1. Dashboard game queue
+    - Description: Game scheduling feature within the dashboard is a beta feature and still has to be tested for stability.
+    - Steps to reproduce issue:
+        1. Launch the [`wordle_stats_dashboard.py`](#dashboard)
+        2. Head to the `Settings` tab
+        3. Toggle the slider for `Activate manual play`
+        4. Repeatly pressing `Play game` button causes a back log of games in queue
+
+    - Current behavior: Games will still be added to queue via even if queue is not empty. Causes a back log of games in queue if games are queued up manually or via scheduled games.
+    - Expected behavior: Queue should be locked after games are added to queue and unlocked when games are done. Queue should be given priority to game scheduling.
