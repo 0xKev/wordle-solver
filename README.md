@@ -1,11 +1,20 @@
 # Wordle-solver #
 Python program that helps you solve the daily Wordle puzzle by giving you the next best word to guess. The solver offers three game modes: manual, auto, and rand. You can use the solver directly from the terminal or launch a dashboard for additional features and statistics.
 
+
+## Public Dashboard
+A public dashboard is also available to try at http://wordlesolver.nykevin.com/   
+
+Please note that the public dashboard is a [Docker](#docker-image) container hosted on Google Cloud Engine's Micro E2 free tier. Due to the free tier limitations, users may experience slower performance on the public dashboard compared to the [self hosted](#getting-started) one below.
+
+
+
 # Table Of Content
 - [Getting Started](#getting-started)
 - [Command Line Usage](#command-line)
 - [Dashboard](#dashboard)
 - [Examples](#examples)
+- [Docker Setup](#docker-image)
 - [Known Bugs](#known-bugs-will-be-fixed-asap)
 
 
@@ -103,6 +112,11 @@ pip install -r requirements.txt
 cd src/
 ```
 ### [Jump to usage](#usage)
+
+## Docker Image
+
+A Docker image for this project is available on [Docker Hub](https://hub.docker.com/repository/docker/0xkev/wordle-solver/general) 
+
 
 # Known Bugs (will be fixed ASAP)
 1. Dashboard game queue
