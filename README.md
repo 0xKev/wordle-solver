@@ -115,7 +115,7 @@ cd src/
 
 ## Docker Image
 
-A Docker image for this project is available on [Docker Hub](https://hub.docker.com/repository/docker/0xkev/wordle-solver/general) 
+A Docker image for this project is available on [Docker Hub](https://hub.docker.com/r/0xkev/wordle-solver) 
 
 
 # Known Bugs (will be fixed ASAP)
