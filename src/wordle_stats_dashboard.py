@@ -26,6 +26,7 @@ class WordleDashboard:
 
     # look into caching for performance later (potential issue: cache prevents stats from updating)
     # also maybe st.fragment for auto reruns indepdently to load new data
+    @st.cache(ttl=82800)
     def load_data(self) -> None:
         data = pd.read_csv(self.stats_manager.get_file(), sep=";", header=0)
         data["date"] = pd.to_datetime(data["date"])
