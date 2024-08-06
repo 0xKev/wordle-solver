@@ -16,18 +16,16 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 RUN wget https://storage.googleapis.com/chrome-for-testing-public/124.0.6367.91/linux64/chromedriver-linux64.zip \
-    && unzip chromedriver-linux64.zip \
-    && mv chromedriver-linux64/chromedriver /usr/bin/ \
-    && chown root:root /usr/bin/chromedriver \
-    && chmod +x /usr/bin/chromedriver
+&& unzip chromedriver-linux64.zip \
+&& mv chromedriver-linux64/chromedriver /usr/bin/ \
+&& chown root:root /usr/bin/chromedriver \
+&& chmod +x /usr/bin/chromedriver
 
-RUN git clone https://github.com/0xKev/wordle-solver.git \
-    && mv wordle-solver/* . \
-    && rm -rf wordle-solver \
-    && pip install --no-cache-dir -r requirements.txt
-    
-RUN mkdir database
-COPY database/stats.csv database/stats.csv
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 EXPOSE 8501
 ENTRYPOINT ["streamlit", "run", "wordle_stats_dashboard.py", "--server.port=8501", "--server.address=0.0.0.0"]
