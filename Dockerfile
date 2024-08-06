@@ -9,11 +9,11 @@ RUN apt-get update && apt-get install -y \
     git \
     wget \
     unzip \
-    && rm -rf /var/lib/apt/lists/*
-RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && echo "deb [arch=amd64]  http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \
     && apt-get -y update \
-    && apt-get -y install google-chrome-stable
+    && apt-get -y install google-chrome-stable \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN wget https://storage.googleapis.com/chrome-for-testing-public/124.0.6367.91/linux64/chromedriver-linux64.zip \
     && unzip chromedriver-linux64.zip \
@@ -23,9 +23,9 @@ RUN wget https://storage.googleapis.com/chrome-for-testing-public/124.0.6367.91/
 
 RUN git clone https://github.com/0xKev/wordle-solver.git \
     && mv wordle-solver/* . \
-    && rm -rf wordle-solver
-
-RUN pip install --no-cache-dir -r requirements.txt
+    && rm -rf wordle-solver \
+    && pip install --no-cache-dir -r requirements.txt
+    
 RUN mkdir database
 COPY database/stats.csv database/stats.csv
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
