@@ -24,8 +24,10 @@ RUN wget https://storage.googleapis.com/chrome-for-testing-public/124.0.6367.91/
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY src/ ./src/
+COPY database/ ./database
+COPY data/ ./data
 
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 EXPOSE 8501
-ENTRYPOINT ["streamlit", "run", "wordle_stats_dashboard.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["streamlit", "run", "src/wordle_stats_dashboard.py", "--server.port=8501", "--server.address=0.0.0.0"]

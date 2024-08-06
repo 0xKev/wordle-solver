@@ -6,7 +6,9 @@ services:
     expose:
       - "8501"
     volumes:
+      - ./src:/app/src
       - ./database:/app/database
+      - ./data:/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8501"]
       interval: 30s
