@@ -11,7 +11,7 @@ import time
 from random import randint 
 from datetime import datetime 
 import signal
-from stats_manager import WordleStats
+from .stats_manager import WordleStats
 import sys
 
 class WordleSolver:
@@ -424,10 +424,10 @@ class WordleSolver:
 
             wait = WebDriverWait(self.wordle, 5)
             
-            play_button = wait.until(EC.presence_of_element_located((By.XPATH, f'//button[@type="button"]')))
+            play_button = wait.until(EC.presence_of_element_located((By.XPATH, '//button[@type="button" and text()="Play"]')))
             play_button.click()
 
-            x_button = self.wordle.find_element(By.XPATH, "//button[@type='button']")
+            x_button = wait.until(EC.presence_of_element_located((By.XPATH, '//button[@type="button" and @aria-label="Close"]')))
             x_button.click()
  
             match self.game_mode:
