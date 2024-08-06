@@ -11,7 +11,7 @@ import time
 from random import randint 
 from datetime import datetime 
 import signal
-from .stats_manager import WordleStats
+from stats_manager import WordleStats
 import sys
 
 class WordleSolver:

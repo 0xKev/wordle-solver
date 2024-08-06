@@ -6,9 +6,6 @@ import pandas as pd
 import time
 import altair as alt
 from datetime import datetime
-from datetime import time as time_class
-import schedule
-import threading
 import os
 
 class WordleDashboard:
@@ -24,10 +21,6 @@ class WordleDashboard:
         self.min_date = ""
         self.max_date = ""
         self.raw_data = ""
-        st.session_state.queued_game = False
-        st.session_state.game_freq = 1
-        st.session_state.active_game = False
-        self.scheduled_time = None
         
         self.load_data()
 
@@ -108,7 +101,6 @@ class WordleDashboard:
 
         st.altair_chart(altair_chart=alt_chart, theme="streamlit", use_container_width=True)
 
-        # ALSO DISPLAY SR
 
     def display_sidebar(self, static: bool):
         menu_options = {
@@ -116,7 +108,6 @@ class WordleDashboard:
                 "Game Mode Distribution": self.show_game_mode_dist,
                 "Guess Distribution": self.show_guess_dist, 
                 "Success Rate": self.show_success_rate, 
-                "Streaks": self.show_streaks,
         }
 
         static_menu_options = {
@@ -134,16 +125,12 @@ class WordleDashboard:
         
         menu_selection[selected_option]()
 
-
-    
     def display_tabs_refreshed(self) -> None:
         tab_options = {
                 "Daily": self.show_daily_stats, 
                 "Game Mode Distribution": self.show_game_mode_dist,
                 "Guess Distribution": self.show_guess_dist, 
-                "Success Rate": self.show_success_rate, 
-                #"Streaks": self.show_streaks,
-                "Settings": self.game_settings,
+                "Success Rate": self.show_success_rate,
         }
 
         tab_names = list(tab_options.keys())
@@ -153,14 +140,6 @@ class WordleDashboard:
         for idx, tab in enumerate(tabs):
             with tab:
                 tab_options[tab_names[idx]]()
-    
-    def display_sidebar_non_refreshed(self) -> None:
-        menu_options = {
-            "Settings": self.game_settings
-        }
-
-        with st.sidebar:
-            selected_option = {}
 
     def show_all_stats(self):
         game_modes = self.raw_data["game_mode"].unique()
@@ -278,153 +257,7 @@ class WordleDashboard:
 
         return round((success / total), 2) if total != 0 else 0
         
-        
-
-    def show_streaks(self):
-        st.subheader("Streaks!")
-        longest_streak = 0
-        
-        filtered_data = self.raw_data[self.raw_data["solved"]] # able to use boolean indexing bc "solved" values are True or False
-        data = self.raw_data
-        # .transform works on each group and "idxmax" returns the first index of the maximum value (True).
-        # so each group of solved dates is assigned the idx of the first True in each group and finally compared to the original idx
-        # if match with original idx then condition True, row is the first win for each date group
-        daily_first_win = filtered_data.groupby(filtered_data["date"].dt.date)["solved"].transform("idxmax") == filtered_data.index
-        data["daily_first_win"] = daily_first_win.reindex(data.index).fillna(False) # to fill in N/A with False for fail answers
-        data["daily_first_win"] = data["daily_first_win"].infer_objects(copy=False) # fillna deprecated and will change in the future
-
-        filtered_daily_wins = data[data["daily_first_win"]]
-
-        # create column showing # of days diff
-        filtered_daily_wins["diff"] = filtered_daily_wins["date"].diff().dt.days
-
-        # create column to mark the days where diff == 1
-        filtered_daily_wins["consecutive"] = filtered_daily_wins["diff"] == 1
-
-        filtered_daily_wins["streak_count"] = filtered_daily_wins["consecutive"].cumsum()
-
-        streak_count = filtered_daily_wins.groupby("date")["diff"].size()
-
-        consecutive_days = filtered_daily_wins.groupby("streak_count").size().max()
-
-        st.write(consecutive_days + 1)
-
-    def toggle_play_enabled(self) -> None:
-        st.session_state.play_enabled = not st.session_state.play_enabled
-
-    def toggle_manual_play_btn(self) -> None:
-        manual_toggle = st.toggle(
-            "Activate manual play", 
-            key=f"manual_toggle",
-            value=st.session_state.play_enabled,
-            )
-        st.session_state.play_enabled = manual_toggle
-        
-    def game_settings(self) -> None:
-        st.session_state.play_enabled = False
-
-        schedule_col, manual_col = st.columns(2)
-            
-        with schedule_col.container(border=True):
-            st.write("Schedule game:")
-            current_scheduled_time = time_class(hour=20) if not self.scheduled_time else self.scheduled_time
-            time_val = st.time_input("Select :blue[time] for automatic Wordle games:sunglasses:", value=current_scheduled_time)
-
-            self.scheduled_time = time_val
-                  
-        with manual_col.container(border=True):
-            self.toggle_manual_play_btn()
-
-            game_modes = {
-                "Random": "rand",
-                "Auto": "auto"
-            }
-
-            game_mode_selections = st.radio(
-                "Select game mode",
-                list(game_modes.keys()),
-                captions=["random first guess", "optimized first guess"],
-                disabled=not st.session_state.play_enabled,
-            )
-
-            manual_submitted = st.button(
-                "Play game", 
-                disabled=not st.session_state.play_enabled,
-                on_click=self.queue_game()
-            )
-
-            if manual_submitted:
-                with st.spinner(f"Game running with game mode {game_modes[game_mode_selections]}"):
-                    self.run_games(game_mode=game_modes[game_mode_selections])
     
-    def queue_game(self) -> None:
-        st.session_state.queued_game = True if st.session_state.active_game == False else False
-
-    def schedule_slider_moved(self) -> None:
-        st.session_state.slider_moved = True
-        self.check_session_game()
-
-    def check_session_game(self):
-        if st.session_state.queued_game and not st.session_state.active_game:
-            self.run_games(st.session_state.game_freq)
-
-    # use some kinda progress bar
-    def run_games(self, game_mode: str, num_games: int = 1) -> None:
-        if st.session_state.active_game == False and st.session_state.queued_game == True:    
-            try:
-                for game_num in range(num_games):
-                    st.session_state.active_game = False
-                    if st.session_state.active_game == False and st.session_state.queued_game == True:  
-                        st.session_state.active_game = True
-                        self.wordle_solver.startGame(game_mode)
-                        results = self.wordle_solver.get_results()
-                        self.stats_manager.save_stats_csv(*results)
-                        if results[3]:
-                            st.toast(f"Solved with {results[4]} guesses", icon="✅")
-                        else:
-                            st.toast("Better luck next time 😭😭")
-                        st.toast(f"Word of the day is {results[2]}")
-            except Exception as err:
-                st.warning("Wordle solver crashed")
-                st.write(err)
-                print(err)
-                st.rerun()
-            finally:
-                st.session_state.game_freq = False
-                st.session_state.queued_game = False
-                st.session_state.active_game= False
-                time.sleep(4)
-                st.rerun()
-
-    def scheduled_games(self):
-        st.info("Running scheduled games", icon="🔥")
-        self.run_games("rand", 5)
-        self.run_games("auto", 5)
-    
-    def reset_game_session(self):
-        if st.button("Click to reset game sessions to False", disabled=False):
-            st.session_state.queued_game = False
-            st.session_state.active_game = False
-            st.session_state.game_freq = False
-    
-    def is_active_game(self) -> bool:
-        return st.session_state.active_game
-
-    def is_queued_game(self) -> bool:
-        return st.session_state.queued_game
-    
-
-    # sessino state saves freq and if game active
-    # schedule based off freq and only play if session state not active
-def run_threaded(job_func):
-        job_thread = threading.Thread(target=job_func)
-        job_thread.start()
-    
-def run_scheduler():
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
-
 def run_app() -> None:
     game = WordleSolver() # no param sets it to "auto"
     stats = WordleStats("stats.csv")
@@ -432,22 +265,12 @@ def run_app() -> None:
 
     st.title("Wordle Solver Stats Dashboard")
 
-    dashboard.load_data()
     dashboard.display_tabs_refreshed()
-    
-    placeholder = st.empty()
 
 def set_working_directory() -> None:
     called_py_path = os.path.abspath(__file__)    
     py_dir = os.path.dirname(called_py_path)
-    os.chdir(py_dir)
-      
-    
-# no need for loop refresh
-# only refresh if game has been played, make sure to use the st.warning if ailed and success
-# also only auto refresh on set time ffter game played
-# might need set a flag to determine if game ha sjust been played
-        
+    os.chdir(py_dir) 
         
 if __name__ == "__main__":
     set_working_directory()
