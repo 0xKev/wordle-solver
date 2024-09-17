@@ -29,5 +29,5 @@ COPY database/ ./database
 COPY data/ ./data
 
 HEALTHCHECK CMD curl --fail http://localhost:8502/_stcore/health
-EXPOSE 8501
+EXPOSE 8502
 ENTRYPOINT ["streamlit", "run", "src/wordle_stats_dashboard.py", "--server.port=8502", "--server.address=0.0.0.0", "--server.headless=true"]
