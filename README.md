@@ -1,4 +1,7 @@
-# Wordle-solver #
+# Wordle-solver (ARCHIVED) #
+
+This repository is archived and no longer maintained due to a conflict with Wordle's Terms of Service (TOS). The new TOS requires an agreement to continue and while the solver was functional, it's nature conflicted with the rules leading to the decision to cease maintenance and updates.
+
 Python program that helps you solve the daily Wordle puzzle by giving you the next best word to guess. The solver offers three game modes: manual, auto, and rand. You can use the solver directly from the terminal or launch a dashboard for additional features and statistics.
 
 
